@@ -1,0 +1,41 @@
+Node GenRig (total, max_children, offset):
+	int remaining_total, tier_total, possible_total, total_children, remaining_tier, children_avg, children_real;
+	Node[] cur_tier;
+	List<Node> next_tier;
+	Node head;
+
+	remaining_total = total;
+	tier_total = min(rand(max_children) + 1, total);
+	head = new Node(null, tier_total);
+	next_tier = new List<Node>() { head };
+
+	while (!next_tier.isEmpty()):
+		cur_tier = next_tier.ToArray();
+
+		possible_total = tier_total * max_children;
+
+		if (remaining_total < possible_total):
+			total_children = remaining_total
+		else:
+			total_children = rand(possible_total + 1);
+
+		remaining_tier = total_children;
+		remaining_total -= remaining_tier;
+
+		children_avg = total_children / tier_total;
+
+		for (int i = 0; i < cur_tier.Length; i++):
+			for (int j = 1; j < cur_tier[i].Neighbors.Length; j++):
+				if (remaining_tier < children_avg):
+					children_real = remaining_tier;
+				else:
+					children_real = min(children_avg + rand(offset * 2 + 1) - min(offset, children_avg), remaining_tier);
+			
+				remaining_tier -= children_real;
+
+				cur_tier[i].Neighbors[j] = new Node(cur_tier[i], children_real);
+				next_tier.Add(cur_tier[i].Neighbors[j]);
+
+		remaining_total += remaining_tier;
+	
+	return head;

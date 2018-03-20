@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwarmNet", "SwarmNet\SwarmNet.csproj", "{BC44157C-9BC9-4E48-BDC4-B719E8EDF9BE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolynomialSwarm", "PolynomialSwarm\PolynomialSwarm.csproj", "{A7AFE2CD-C6D9-4CEE-A16D-20A79DAC0386}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{BC44157C-9BC9-4E48-BDC4-B719E8EDF9BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC44157C-9BC9-4E48-BDC4-B719E8EDF9BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC44157C-9BC9-4E48-BDC4-B719E8EDF9BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7AFE2CD-C6D9-4CEE-A16D-20A79DAC0386}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7AFE2CD-C6D9-4CEE-A16D-20A79DAC0386}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7AFE2CD-C6D9-4CEE-A16D-20A79DAC0386}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7AFE2CD-C6D9-4CEE-A16D-20A79DAC0386}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

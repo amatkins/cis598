@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SwarmNet
+namespace SwarmNet.ModelSet
 {
-    public class RigNode
+    public abstract class Spawner : SetPiece
     {
     }
 }

@@ -1,0 +1,5 @@
+C:\Users\anthm\Documents\Repositories\cis598\SwarmNet\SwarmNet\bin\Debug\SwarmNet.dll
+C:\Users\anthm\Documents\Repositories\cis598\SwarmNet\SwarmNet\bin\Debug\SwarmNet.pdb
+C:\Users\anthm\Documents\Repositories\cis598\SwarmNet\SwarmNet\obj\Debug\SwarmNet.csprojResolveAssemblyReference.cache
+C:\Users\anthm\Documents\Repositories\cis598\SwarmNet\SwarmNet\obj\Debug\SwarmNet.dll
+C:\Users\anthm\Documents\Repositories\cis598\SwarmNet\SwarmNet\obj\Debug\SwarmNet.pdb
