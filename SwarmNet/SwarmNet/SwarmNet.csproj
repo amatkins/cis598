@@ -41,7 +41,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Agent.cs" />
+    <Compile Include="Message.cs" />
     <Compile Include="ModelSet\Junction.cs" />
+    <Compile Include="ModelSet\ModelGraph.cs" />
     <Compile Include="ModelSet\SetPiece.cs" />
     <Compile Include="ModelSet\ModelBranchNode.cs" />
     <Compile Include="ModelSet\ModelHeadNode.cs" />

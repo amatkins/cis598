@@ -4,16 +4,35 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SwarmNet.ModelSet
+namespace SwarmNet
 {
-    public abstract class SetPiece
+    public abstract class SetPiece<JI, JO, TI, TO>
     {
         #region Fields
 
         /// <summary>
         /// The node that this set piece belongs to.
         /// </summary>
-        ModelNode<SetPiece> _loc;
+        protected GraphNode<JI, JO, TI, TO> _loc;
+
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// The node that this set piece is on.
+        /// </summary>
+        public GraphNode<JI, JO, TI, TO> Location
+        {
+            get
+            {
+                return _loc;
+            }
+            set
+            {
+                _loc = value;
+            }
+        }
 
         #endregion
     }
