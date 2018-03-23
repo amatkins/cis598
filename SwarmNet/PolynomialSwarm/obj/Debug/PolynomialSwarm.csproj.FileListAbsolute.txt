@@ -1,8 +1,0 @@
-C:\Users\anthm\Documents\Repositories\cis598\SwarmNet\PolynomialSwarm\bin\Debug\PolynomialSwarm.exe.config
-C:\Users\anthm\Documents\Repositories\cis598\SwarmNet\PolynomialSwarm\bin\Debug\PolynomialSwarm.exe
-C:\Users\anthm\Documents\Repositories\cis598\SwarmNet\PolynomialSwarm\bin\Debug\PolynomialSwarm.pdb
-C:\Users\anthm\Documents\Repositories\cis598\SwarmNet\PolynomialSwarm\bin\Debug\SwarmNet.dll
-C:\Users\anthm\Documents\Repositories\cis598\SwarmNet\PolynomialSwarm\bin\Debug\SwarmNet.pdb
-C:\Users\anthm\Documents\Repositories\cis598\SwarmNet\PolynomialSwarm\obj\Debug\PolynomialSwarm.csprojResolveAssemblyReference.cache
-C:\Users\anthm\Documents\Repositories\cis598\SwarmNet\PolynomialSwarm\obj\Debug\PolynomialSwarm.exe
-C:\Users\anthm\Documents\Repositories\cis598\SwarmNet\PolynomialSwarm\obj\Debug\PolynomialSwarm.pdb

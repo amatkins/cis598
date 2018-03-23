@@ -305,7 +305,7 @@ namespace SwarmNet
             _population.Remove(_head.Despawn());
         }
         /// <summary>
-        /// Moves the simulation of the model alon by one generic time unit.
+        /// Moves the simulation of the model along by one generic time unit.
         /// </summary>
         public void Tick()
         {
@@ -318,17 +318,96 @@ namespace SwarmNet
                 throw new InvalidOperationException("Entrance to graph not connected.");
 
             // Exit graph through spawn
-            while (_head.OutCount > 0)
+            while (_head.InCount > 0)
             {
                 Despawn();
             }
-            // Move those waiting to enter into the node
-            _head.Flush();
             // Enter the graph
             while (_head.OutCount > 0)
             {
                 _head.Exit.Enqueue(_head.Dequeue());
             }
+
+            // Perform interactions for all the branch nodes
+            foreach (BranchNode<JI, JO, TI, TO> branch in _branches)
+            {
+                // For every agent on the node...
+                while (branch.OutCount > 0)
+                {
+                    // Get next agent and start communications
+                    a = branch.Dequeue();
+                    jO = branch.InitComm();
+
+                    // Communicate until the node quits
+                    do
+                    {
+                        jO = branch.Communicate(a.CommJunc(jO));
+                    } while (jO.Type != CommType.FINISH);
+
+                    // Throw an exception if the agent can't leave
+                    if (branch.Exit == null)
+                        throw new InvalidOperationException("Exit path not connected to a node.");
+
+                    // Have the agent leave.
+                    branch.Exit.Enqueue(a);
+                }
+            }
+
+            // Perform interactions for all the leaf nodes
+            foreach (LeafNode<JI, JO, TI, TO> leaf in _leaves)
+            {
+                // For every agent on the node...
+                while (leaf.OutCount > 0)
+                {
+                    // Get next agent and start communications
+                    a = leaf.Dequeue();
+                    tO = leaf.InitComm();
+
+                    // Communicate until the node quits
+                    do
+                    {
+                        tO = leaf.Communicate(a.CommTerm(tO));
+                    } while (tO.Type != CommType.FINISH);
+
+                    // Throw an exception if the agent can't leave
+                    if (leaf.Exit == null)
+                        throw new InvalidOperationException("Exit path not connected to a node.");
+
+                    // Have the agent leave.
+                    leaf.Exit.Enqueue(a);
+                }
+            }
+
+            // Move all agents into their respective nodes
+            foreach (BranchNode<JI, JO, TI, TO> branch in _branches)
+            {
+                branch.Flush();
+            }
+            foreach (LeafNode<JI, JO, TI, TO> leaf in _leaves)
+            {
+                leaf.Flush();
+            }
+        }
+        /// <summary>
+        /// Moves the simulation of the model along by a part of one generic time unit.
+        /// </summary>
+        public void MilliTick()
+        {
+            Agent<JI, JO, TI, TO> a;
+            Message<JO> jO;
+            Message<TO> tO;
+            bool doneTick = true;
+
+            // If the head is not connected, then throw an exception
+            if (_head.Exit == null)
+                throw new InvalidOperationException("Entrance to graph not connected.");
+
+            // Exit graph through spawn
+            if (_head.InCount > 0)
+                Despawn();
+            // Enter the graph
+            if (_head.OutCount > 0)
+                _head.Exit.Enqueue(_head.Dequeue());
 
             // Perform interactions for all the branch nodes
             foreach (BranchNode<JI, JO, TI, TO> branch in _branches)
@@ -353,6 +432,9 @@ namespace SwarmNet
 
                 // Have the agent leave.
                 branch.Exit.Enqueue(a);
+
+                // raise flag that tick is not done yet
+                doneTick = false;
             }
 
             // Perform interactions for all the branch nodes
@@ -378,17 +460,23 @@ namespace SwarmNet
 
                 // Have the agent leave.
                 leaf.Exit.Enqueue(a);
+
+                // raise flag that tick is not done yet
+                doneTick = false;
             }
 
-            // Move all agents into their respective nodes
-            _head.Flush();
-            foreach (BranchNode<JI, JO, TI, TO> branch in _branches)
+            // If this is the end of the tick
+            if (doneTick)
             {
-                branch.Flush();
-            }
-            foreach (LeafNode<JI, JO, TI, TO> leaf in _leaves)
-            {
-                leaf.Flush();
+                // Move all agents into their respective nodes
+                foreach (BranchNode<JI, JO, TI, TO> branch in _branches)
+                {
+                    branch.Flush();
+                }
+                foreach (LeafNode<JI, JO, TI, TO> leaf in _leaves)
+                {
+                    leaf.Flush();
+                }
             }
         }
 

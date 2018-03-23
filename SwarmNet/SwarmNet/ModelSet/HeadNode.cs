@@ -78,7 +78,8 @@ namespace SwarmNet
             // Spawn a new agent
             Agent<JI, JO, TI, TO> a = ((Spawner<JI, JO, TI, TO>)_piece).Spawn();
             // Add it to the node and sort
-            _inFlow.Add(a);
+            _outFlow.Add(a);
+            _outFlow.Sort();
             // Return it for the use by the graph
             return a;
         }
@@ -89,7 +90,9 @@ namespace SwarmNet
         public Agent<JI, JO, TI, TO> Despawn()
         {
             // Get first agent leaving
-            Agent<JI, JO, TI, TO> a = Dequeue();
+            Agent<JI, JO, TI, TO> a = _inFlow.Count > 0 ? _inFlow[0] : null;
+            // Remove from queue
+            _inFlow.RemoveAt(0);
             // Despawn the agent
             ((Spawner<JI, JO, TI, TO>)_piece).Despawn(a);
             // Return it for use by the graph

@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwarmNet", "SwarmNet\SwarmNet.csproj", "{BC44157C-9BC9-4E48-BDC4-B719E8EDF9BE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolyE", "PolyE\PolyE.csproj", "{33B3F38F-B0A6-407F-8C9F-1A04D28C3AE6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwarmNet", "..\SwarmNet\SwarmNet\SwarmNet.csproj", "{BC44157C-9BC9-4E48-BDC4-B719E8EDF9BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,6 +13,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{33B3F38F-B0A6-407F-8C9F-1A04D28C3AE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33B3F38F-B0A6-407F-8C9F-1A04D28C3AE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33B3F38F-B0A6-407F-8C9F-1A04D28C3AE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33B3F38F-B0A6-407F-8C9F-1A04D28C3AE6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BC44157C-9BC9-4E48-BDC4-B719E8EDF9BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BC44157C-9BC9-4E48-BDC4-B719E8EDF9BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC44157C-9BC9-4E48-BDC4-B719E8EDF9BE}.Release|Any CPU.ActiveCfg = Release|Any CPU

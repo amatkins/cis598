@@ -45,12 +45,10 @@
     <Compile Include="ModelSet\Junction.cs" />
     <Compile Include="ModelSet\ModelGraph.cs" />
     <Compile Include="ModelSet\SetPiece.cs" />
-    <Compile Include="ModelSet\ModelBranchNode.cs" />
-    <Compile Include="ModelSet\ModelHeadNode.cs" />
-    <Compile Include="ModelSet\ModelLeafNode.cs" />
-    <Compile Include="ModelSet\ModelNode.cs" />
-    <Compile Include="RigSet\RigGraph.cs" />
-    <Compile Include="RigSet\RigNode.cs" />
+    <Compile Include="ModelSet\BranchNode.cs" />
+    <Compile Include="ModelSet\HeadNode.cs" />
+    <Compile Include="ModelSet\LeafNode.cs" />
+    <Compile Include="ModelSet\GraphNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ModelSet\Spawner.cs" />
     <Compile Include="ModelSet\Terminal.cs" />
