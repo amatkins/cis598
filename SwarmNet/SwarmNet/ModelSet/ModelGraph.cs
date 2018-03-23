@@ -97,14 +97,14 @@ namespace SwarmNet
         /// <param name="m">The max children each node can have.</param>
         /// <param name="o">The offset from the average.</param>
         /// <param name="l">The chance a node will be a leaf.</param>
-        /// <param name="s">The method of creating spawners.</param>
+        /// <param name="p">The method of creating portals.</param>
         /// <param name="j">The method of creating junctions.</param>
         /// <param name="t">The method of creating terminals.</param>
-        public ModelGraph(Random r, int n, int m, int o, int l, Func<Spawner<JI, JO, TI, TO>> s, Func<int, Junction<JI, JO, TI, TO>> j, Func<Terminal<JI, JO, TI, TO>> t)
+        public ModelGraph(Random r, int n, int m, int o, int l, Func<Portal<JI, JO, TI, TO>> p, Func<int, Junction<JI, JO, TI, TO>> j, Func<Terminal<JI, JO, TI, TO>> t)
         {
             _population = new List<Agent<JI, JO, TI, TO>>();
             GenTree(r, n, m, o, l);
-            BuildSet(s, j, t);
+            BuildSet(p, j, t);
         }
 
         #endregion
@@ -231,10 +231,10 @@ namespace SwarmNet
         /// Converts a tree styled rigging graph to a model graph.
         /// </summary>
         /// <param name="rig">The rigging graph to conver.</param>
-        /// <param name="spawn">Method for generating a spawner.</param>
+        /// <param name="port">Method for generating portals.</param>
         /// <param name="junc">Method for generating junctions.</param>
         /// <param name="term">Method for generating terminals.</param>
-        public void BuildSet(Func<Spawner<JI, JO, TI, TO>> spawn, Func<int, Junction<JI, JO, TI, TO>> junc, Func<Terminal<JI, JO, TI, TO>> term)
+        public void BuildSet(Func<Portal<JI, JO, TI, TO>> port, Func<int, Junction<JI, JO, TI, TO>> junc, Func<Terminal<JI, JO, TI, TO>> term)
         {
             List<GraphNode<JI, JO, TI, TO>> current_model, next_model = new List<GraphNode<JI, JO, TI, TO>>() { _head };
             GraphNode<JI, JO, TI, TO> model_node;
@@ -255,7 +255,7 @@ namespace SwarmNet
                     // Build set piece on node and add un-built children to next tier
                     if (isHead)
                     {
-                        ((HeadNode<JI, JO, TI, TO>)model_node).Spawner = spawn();
+                        ((HeadNode<JI, JO, TI, TO>)model_node).Portal = port();
                         for (int j = 0; j < model_node.Length; j++)
                         {
                             if (model_node[j].Piece == null)
@@ -289,20 +289,18 @@ namespace SwarmNet
         #region Methods - Events
 
         /// <summary>
-        /// Generate and add an agent to the graph.
+        /// Add a new agent to the graph.
         /// </summary>
-        public void Spawn()
+        public void Enter()
         {
-            // Spawn a new agent and add it to the graph
-            _population.Add(_head.Spawn());
+            _population.Add(_head.Enter());
         }
         /// <summary>
         /// Remove an agent from the graph.
         /// </summary>
-        public void Despawn()
+        public void Leave()
         {
-            // Despawn an agent and remove it from the graph
-            _population.Remove(_head.Despawn());
+            _population.Remove(_head.Leave());
         }
         /// <summary>
         /// Moves the simulation of the model along by one generic time unit.
@@ -317,10 +315,10 @@ namespace SwarmNet
             if (_head.Exit == null)
                 throw new InvalidOperationException("Entrance to graph not connected.");
 
-            // Exit graph through spawn
-            while (_head.InCount > 0)
+            // Exit graph through portal
+            while (_head.ExOutCount > 0)
             {
-                Despawn();
+                Leave();
             }
             // Enter the graph
             while (_head.OutCount > 0)
@@ -379,6 +377,7 @@ namespace SwarmNet
             }
 
             // Move all agents into their respective nodes
+            _head.Flush();
             foreach (BranchNode<JI, JO, TI, TO> branch in _branches)
             {
                 branch.Flush();
@@ -391,7 +390,8 @@ namespace SwarmNet
         /// <summary>
         /// Moves the simulation of the model along by a part of one generic time unit.
         /// </summary>
-        public void MilliTick()
+        /// <returns>Whether or not a tick has passed.</returns>
+        public bool SemiTick()
         {
             Agent<JI, JO, TI, TO> a;
             Message<JO> jO;
@@ -402,12 +402,22 @@ namespace SwarmNet
             if (_head.Exit == null)
                 throw new InvalidOperationException("Entrance to graph not connected.");
 
-            // Exit graph through spawn
-            if (_head.InCount > 0)
-                Despawn();
+            // Exit graph through portal
+            if (_head.ExOutCount > 0)
+            {
+                Leave();
+                // If this wasn't the last action for this step, then the tick isn't done
+                if (_head.ExOutCount > 0)
+                    doneTick = false;
+            }
             // Enter the graph
             if (_head.OutCount > 0)
+            {
                 _head.Exit.Enqueue(_head.Dequeue());
+                // If this wasn't the last action for this step, then the tick isn't done
+                if (_head.OutCount > 0)
+                    doneTick = false;
+            }
 
             // Perform interactions for all the branch nodes
             foreach (BranchNode<JI, JO, TI, TO> branch in _branches)
@@ -433,8 +443,9 @@ namespace SwarmNet
                 // Have the agent leave.
                 branch.Exit.Enqueue(a);
 
-                // raise flag that tick is not done yet
-                doneTick = false;
+                // If this wasn't the last action for this step, then the tick isn't done
+                if (branch.OutCount > 0)
+                    doneTick = false;
             }
 
             // Perform interactions for all the branch nodes
@@ -461,14 +472,16 @@ namespace SwarmNet
                 // Have the agent leave.
                 leaf.Exit.Enqueue(a);
 
-                // raise flag that tick is not done yet
-                doneTick = false;
+                // If this wasn't the last action for this step, then the tick isn't done
+                if (leaf.OutCount > 0)
+                    doneTick = false;
             }
 
             // If this is the end of the tick
             if (doneTick)
             {
                 // Move all agents into their respective nodes
+                _head.Flush();
                 foreach (BranchNode<JI, JO, TI, TO> branch in _branches)
                 {
                     branch.Flush();
@@ -478,6 +491,8 @@ namespace SwarmNet
                     leaf.Flush();
                 }
             }
+
+            return doneTick;
         }
 
         #endregion
