@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 
 namespace SwarmNet
 {
-    [DataContract(Name = "Node", Namespace = "SwarmNet")]
+    [DataContract(IsReference = true, Name = "Node", Namespace = "SwarmNet")]
     [KnownType("GetKnownTypes")]
     public abstract class GraphNode<JI, JO, TI, TO>
     {

@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Linq;
+using System.Runtime.Serialization;
 using SwarmNet;
 
 namespace PolyE
 {
+    [DataContract(Name = "Conditional", Namespace = "PolyE")]
     public class Conditional : Junction<int, int, string, Tuple<int, int, AlgOp>>
     {
         #region Fields
@@ -11,6 +12,7 @@ namespace PolyE
         /// <summary>
         /// Divids the state-space to fit the paths.
         /// </summary>
+        [DataMember(Name = "Dividers")]
         private int[] _divs;
 
         #endregion

@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 
 namespace SwarmNet
 {
-    [DataContract(Name = "Branch", Namespace = "SwarmNet")]
+    [DataContract(IsReference = true, Name = "Branch", Namespace = "SwarmNet")]
     public class BranchNode<JI, JO, TI, TO> : GraphNode<JI, JO, TI, TO>
     {
         #region Properties

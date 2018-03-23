@@ -11,24 +11,24 @@ namespace SwarmNet
         #region Fields
 
         /// <summary>
-        /// The branch nodes of the graph.
-        /// </summary>
-        [DataMember(Name = "Branches")]
-        private BranchNode<JI, JO, TI, TO>[] _branches;
-        /// <summary>
         /// The head node of the graph.
         /// </summary>
-        [DataMember(Name = "Roots")]
+        [DataMember(Name = "Roots", Order = 2)]
         private RootNode<JI, JO, TI, TO>[] _roots;
+        /// <summary>
+        /// The branch nodes of the graph.
+        /// </summary>
+        [DataMember(Name = "Branches", Order = 3)]
+        private BranchNode<JI, JO, TI, TO>[] _branches;
         /// <summary>
         /// The leaf nodes of the graph.
         /// </summary>
-        [DataMember(Name = "Leaves")]
+        [DataMember(Name = "Leaves", Order = 4)]
         private LeafNode<JI, JO, TI, TO>[] _leaves;
         /// <summary>
         /// The agents on the graph.
         /// </summary>
-        [DataMember(Name = "Agents")]
+        [DataMember(Name = "Agents", Order = 1)]
         private List<Agent<JI, JO, TI, TO>> _agents;
 
         #endregion

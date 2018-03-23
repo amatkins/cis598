@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using SwarmNet;
 
 namespace PolyE
 {
+    [DataContract(Name = "Generator", Namespace = "PolyE")]
     public class ExprGenerator : Portal<int, int, string, Tuple<int, int, AlgOp>>
     {
         #region Globals
@@ -11,10 +13,12 @@ namespace PolyE
         /// <summary>
         /// The next available tag number.
         /// </summary>
+        [DataMember(Name = "IDNum")]
         private static int _nextID = 0;
         /// <summary>
         /// The priority of the expressions.
         /// </summary>
+        [DataMember(Name = "Priority")]
         private static int _priority = 0;
         /// <summary>
         /// The random generator used to make new agents.

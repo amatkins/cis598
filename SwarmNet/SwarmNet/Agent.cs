@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace SwarmNet
 {
-    [DataContract(Name = "Agent", Namespace = "SwarmNet")]
+    [DataContract(IsReference = true, Name = "Agent", Namespace = "SwarmNet")]
     public abstract class Agent<JI, JO, TI, TO> : IComparable<Agent<JI, JO, TI, TO>>
     {
         #region Fields

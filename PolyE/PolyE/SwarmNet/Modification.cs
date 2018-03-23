@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using SwarmNet;
 
 namespace PolyE
 {
+    [DataContract(Name = "Modification", Namespace = "PolyE")]
     public class Modification : Terminal<int, int, string, Tuple<int, int, AlgOp>>
     {
         #region Fields
@@ -10,14 +12,17 @@ namespace PolyE
         /// <summary>
         /// The operation to perform on the coefficient.
         /// </summary>
+        [DataMember(Name = "Operation")]
         private AlgOp _oper;
         /// <summary>
         /// The term of the coefficient.
         /// </summary>
+        [DataMember(Name = "Term")]
         private int _term;
         /// <summary>
         /// The value to modifiy the cofficient.
         /// </summary>
+        [DataMember(Name = "Value")]
         private int _val;
 
         #endregion

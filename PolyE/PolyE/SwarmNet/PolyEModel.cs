@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.Serialization;
 using SwarmNet;
 
 namespace PolyE
 {
+    [DataContract(Name = "PolyE", Namespace = "PolyE")]
     class PolyEModel
     {
         #region Fields
@@ -14,6 +13,7 @@ namespace PolyE
         /// <summary>
         /// The graph of the model.
         /// </summary>
+        [DataMember(Name = "Graph")]
         private ModelGraph<int, int, string, Tuple<int, int, AlgOp>> _graph;
         /// <summary>
         /// The random number generator for the model.
@@ -84,10 +84,10 @@ namespace PolyE
         public override string ToString()
         {
             return string.Format("{0}" + Environment.NewLine + "[{1}]" + Environment.NewLine + "[{2}]" + Environment.NewLine + "[{3}]",
-                string.Format("Head: ({0} In: [{1}] Out: [{2}])",
-                    ((ExprGenerator)_graph.Head.Portal).ToString(),
-                    string.Join(", ", _graph.Head.In.Cast<Expression>()),
-                    string.Join(", ", _graph.Head.Out.Cast<Expression>())),
+                string.Join(Environment.NewLine, _graph.Roots.Select(n => string.Format("Head: ({0} In: [{1}] Out: [{2}])",
+                    ((ExprGenerator)n.Portal).ToString(),
+                    string.Join(", ", n.In.Cast<Expression>()),
+                    string.Join(", ", n.Out.Cast<Expression>())))),
                 string.Join(Environment.NewLine, _graph.Branches.Select(n => string.Format("Branch: ({0} In: [{1}] Out:[{2}])",
                     ((Conditional)n.Junction).ToString(),
                     string.Join(", ",n.In.Cast<Expression>()),
@@ -96,7 +96,7 @@ namespace PolyE
                     ((Modification)n.Terminal).ToString(),
                     string.Join(", ", n.In.Cast<Expression>()),
                     string.Join(", ", n.Out.Cast<Expression>())))),
-                string.Join(Environment.NewLine, _graph.Population.Cast<Expression>()));
+                string.Join(Environment.NewLine, _graph.Agents.Cast<Expression>()));
         }
         /// <summary>
         /// Gets a string representation of just the branches of the model.
@@ -117,10 +117,10 @@ namespace PolyE
         public string LeavesString()
         {
             return string.Format("[{0}" + Environment.NewLine + "{1}]",
-                string.Format("Head: ({0} In: [{1}] Out: [{2}])",
-                    ((ExprGenerator)_graph.Head.Portal).ToString(),
-                    string.Join(", ", _graph.Head.In.Cast<Expression>()),
-                    string.Join(", ", _graph.Head.Out.Cast<Expression>())),
+                string.Join(Environment.NewLine, _graph.Roots.Select(n => string.Format("Head: ({0} In: [{1}] Out: [{2}])",
+                    ((ExprGenerator)n.Portal).ToString(),
+                    string.Join(", ", n.In.Cast<Expression>()),
+                    string.Join(", ", n.Out.Cast<Expression>())))),
                 string.Join(Environment.NewLine, _graph.Leaves.Select(n => string.Format("Leaf: ({0} In: [{1}] Out:[{2}])",
                     ((Modification)n.Terminal).ToString(),
                     string.Join(", ", n.In.Cast<Expression>()),
@@ -132,15 +132,15 @@ namespace PolyE
         /// <returns>The string representation of the agents of the model.</returns>
         public string AgentsString()
         {
-            return string.Join(Environment.NewLine, _graph.Population.Cast<Expression>());
+            return string.Join(Environment.NewLine, _graph.Agents.Cast<Expression>());
         }
 
         #endregion
 
         public void Tick()
         {
-            if (_graph.Population.Length < 10)
-                _graph.Enter();
+            if (_graph.Agents.Length < 10)
+                _graph.Enter(0);
 
             _graph.Tick();
         }

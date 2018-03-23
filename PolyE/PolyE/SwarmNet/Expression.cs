@@ -1,11 +1,23 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.Serialization;
 using SwarmNet;
 
 namespace PolyE
 {
-    public enum AlgOp { ADD, SUB, MUL, DIV };
+    [DataContract(Name = "AlgOp", Namespace = "PolyE")]
+    public enum AlgOp {
+        [EnumMember(Value = "Ad")]
+        ADD,
+        [EnumMember(Value = "Su")]
+        SUB,
+        [EnumMember(Value = "Mu")]
+        MUL,
+        [EnumMember(Value = "Di")]
+        DIV
+    };
 
+    [DataContract(Name = "Expression", Namespace = "PolyE")]
     class Expression : Agent<int, int, string, Tuple<int, int, AlgOp>>
     {
         #region Fields
@@ -13,6 +25,7 @@ namespace PolyE
         /// <summary>
         /// The coefficients of this expression.
         /// </summary>
+        [DataMember(Name = "Coefficients")]
         private int[] _coeffs;
 
         #endregion
