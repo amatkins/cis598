@@ -1,22 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace SwarmNet
 {
-    public class HeadNode<JI, JO, TI, TO> : GraphNode<JI, JO, TI, TO>
+    [DataContract(Name = "Root", Namespace = "SwarmNet")]
+    public class RootNode<JI, JO, TI, TO> : GraphNode<JI, JO, TI, TO>
     {
         #region Fields
 
         /// <summary>
         /// The agents queued to enter this graph.
         /// </summary>
+        [DataMember(Name = "ExternalIn")]
         private List<Agent<JI, JO, TI, TO>> _extInFlow;
         /// <summary>
         /// The agents queued to leave this graph.
         /// </summary>
+        [DataMember(Name = "ExternalOut")]
         private List<Agent<JI, JO, TI, TO>> _extOutFlow;
 
         #endregion
@@ -95,7 +95,7 @@ namespace SwarmNet
         /// <summary>
         /// Constructs a new head node.
         /// </summary>
-        public HeadNode()
+        public RootNode()
         {
             _inFlow = new List<Agent<JI, JO, TI, TO>>();
             _extInFlow = new List<Agent<JI, JO, TI, TO>>();
@@ -110,7 +110,7 @@ namespace SwarmNet
         /// </summary>
         /// <param name="portal">The spawner this node will have.</param>
         /// <param name="neighbors">The max number of neighbors this node can have.</param>
-        public HeadNode(Portal<JI, JO, TI, TO> portal)
+        public RootNode(Portal<JI, JO, TI, TO> portal)
         {
             _inFlow = new List<Agent<JI, JO, TI, TO>>();
             _extInFlow = new List<Agent<JI, JO, TI, TO>>();

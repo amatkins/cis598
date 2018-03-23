@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
 namespace SwarmNet
 {
+    [DataContract(Name = "Junction", Namespace = "SwarmNet")]
     public abstract class Junction<JI, JO, TI, TO> : SetPiece<JI, JO, TI, TO>
     {
         #region Fields
@@ -13,10 +10,12 @@ namespace SwarmNet
         /// <summary>
         /// The max value of the 0-based state;
         /// </summary>
+        [DataMember(Name = "Max")]
         protected int _max;
         /// <summary>
         /// The current numerical state of the junction, used for determining the exit path
         /// </summary>
+        [DataMember(Name = "State")]
         protected int _state;
 
         #endregion

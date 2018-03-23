@@ -70,7 +70,7 @@ namespace PolyE
         /// <returns>A terminal.</returns>
         public Modification TermMaker()
         {
-            return new Modification(_rand.Next(1, 6), (AlgOp)_rand.Next(4), _rand.Next(32) - 16);
+            return new Modification(_rand.Next(1, 6), AlgOp.ADD, _rand.Next(32) - 16);
         }
 
         #endregion
@@ -85,7 +85,7 @@ namespace PolyE
         {
             return string.Format("{0}" + Environment.NewLine + "[{1}]" + Environment.NewLine + "[{2}]" + Environment.NewLine + "[{3}]",
                 string.Format("Head: ({0} In: [{1}] Out: [{2}])",
-                    ((ExprGenerator)_graph.Head.Spawner).ToString(),
+                    ((ExprGenerator)_graph.Head.Portal).ToString(),
                     string.Join(", ", _graph.Head.In.Cast<Expression>()),
                     string.Join(", ", _graph.Head.Out.Cast<Expression>())),
                 string.Join(Environment.NewLine, _graph.Branches.Select(n => string.Format("Branch: ({0} In: [{1}] Out:[{2}])",
@@ -118,7 +118,7 @@ namespace PolyE
         {
             return string.Format("[{0}" + Environment.NewLine + "{1}]",
                 string.Format("Head: ({0} In: [{1}] Out: [{2}])",
-                    ((ExprGenerator)_graph.Head.Spawner).ToString(),
+                    ((ExprGenerator)_graph.Head.Portal).ToString(),
                     string.Join(", ", _graph.Head.In.Cast<Expression>()),
                     string.Join(", ", _graph.Head.Out.Cast<Expression>())),
                 string.Join(Environment.NewLine, _graph.Leaves.Select(n => string.Format("Leaf: ({0} In: [{1}] Out:[{2}])",
@@ -140,7 +140,7 @@ namespace PolyE
         public void Tick()
         {
             if (_graph.Population.Length < 10)
-                _graph.Spawn();
+                _graph.Enter();
 
             _graph.Tick();
         }

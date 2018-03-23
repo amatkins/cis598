@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.Serialization;
 
 namespace SwarmNet
 {
+    [DataContract(Name = "Node", Namespace = "SwarmNet")]
+    [KnownType("GetKnownTypes")]
     public abstract class GraphNode<JI, JO, TI, TO>
     {
         #region Fields
@@ -13,22 +13,27 @@ namespace SwarmNet
         /// <summary>
         /// The agents queued to enter this node.
         /// </summary>
+        [DataMember(Name = "In")]
         protected List<Agent<JI, JO, TI, TO>> _inFlow;
         /// <summary>
         /// The other nodes connected to this one.
         /// </summary>
+        [DataMember(Name = "Neighbors")]
         protected GraphNode<JI, JO, TI, TO>[] _neighbors;
         /// <summary>
         /// The next available space for a neighbor node.
         /// </summary>
+        [DataMember(Name = "NextNeighbor")]
         protected int _nextNeighbor;
         /// <summary>
         /// The agents queued to leave this node.
         /// </summary>
+        [DataMember(Name = "Out")]
         protected List<Agent<JI, JO, TI, TO>> _outFlow;
         /// <summary>
         /// The set piece that is on this node.
         /// </summary>
+        [DataMember(Name = "SetPiece")]
         protected SetPiece<JI, JO, TI, TO> _piece;
 
         #endregion
@@ -272,6 +277,25 @@ namespace SwarmNet
                 _outFlow.Add(a);
             }
             _outFlow.Sort();
+        }
+
+        #endregion
+
+        #region Methods - DataContract
+
+        /// <summary>
+        /// Gets the collection of known types to be used for the DataContract.
+        /// </summary>
+        /// <returns>Collection of known types.</returns>
+        private static Type[] GetKnownTypes()
+        {
+            List<Type> types = new List<Type>();
+
+            types.Add(typeof(RootNode<JI, JO, TI, TO>));
+            types.Add(typeof(BranchNode<JI, JO, TI, TO>));
+            types.Add(typeof(LeafNode<JI, JO, TI, TO>));
+
+            return types.ToArray();
         }
 
         #endregion

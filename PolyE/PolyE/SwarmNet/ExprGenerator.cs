@@ -4,7 +4,7 @@ using SwarmNet;
 
 namespace PolyE
 {
-    public class ExprGenerator : Spawner<int, int, string, Tuple<int, int, AlgOp>>
+    public class ExprGenerator : Portal<int, int, string, Tuple<int, int, AlgOp>>
     {
         #region Globals
 
@@ -115,7 +115,7 @@ namespace PolyE
         /// Takes an old expression off the queue or creates a new one, and then releases it to the graph.
         /// </summary>
         /// <returns>The agent that will be used for the graph.</returns>
-        public override Agent<int, int, string, Tuple<int, int, AlgOp>> Spawn()
+        public override Agent<int, int, string, Tuple<int, int, AlgOp>> Enter()
         {
             Expression a;
 
@@ -142,7 +142,7 @@ namespace PolyE
         /// Stores an old agent for later use on the queue.
         /// </summary>
         /// <param name="a">The agent to store.</param>
-        public override void Despawn(Agent<int, int, string, Tuple<int, int, AlgOp>> a)
+        public override void Leave(Agent<int, int, string, Tuple<int, int, AlgOp>> a)
         {
             _queue.Add((Expression)a);
         }

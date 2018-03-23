@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
 namespace SwarmNet
 {
+    [DataContract(Name = "Portal", Namespace = "SwarmNet")]
     public abstract class Portal<JI, JO, TI, TO> : SetPiece<JI, JO, TI, TO>
     {
         #region Methods

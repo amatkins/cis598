@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace SwarmNet
 {
+    [DataContract(Name = "Leaf", Namespace = "SwarmNet")]
     public class LeafNode<JI, JO, TI, TO> : GraphNode<JI, JO, TI, TO>
     {
         #region Properties

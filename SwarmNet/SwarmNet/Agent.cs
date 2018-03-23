@@ -1,22 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.Serialization;
 
 namespace SwarmNet
 {
+    [DataContract(Name = "Agent", Namespace = "SwarmNet")]
     public abstract class Agent<JI, JO, TI, TO> : IComparable<Agent<JI, JO, TI, TO>>
     {
         #region Fields
-        
+
         /// <summary>
         /// Priority when multiple agents are on the same node.
         /// </summary>
+        [DataMember(Name = "Priority")]
         protected int _priority;
         /// <summary>
         /// The identity tag unique to this agent.
         /// </summary>
+        [DataMember(Name = "IDTag")]
         protected string _tag;
 
         #endregion
