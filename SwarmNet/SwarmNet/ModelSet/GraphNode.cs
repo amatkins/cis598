@@ -35,6 +35,16 @@ namespace SwarmNet
         /// </summary>
         [DataMember(Name = "SetPiece")]
         protected SetPiece<JI, JO, TI, TO> _piece;
+        /// <summary>
+        /// The tier of the graph that this node resides on.
+        /// </summary>
+        [DataMember(Name = "Tier")]
+        protected int _tier;
+        /// <summary>
+        /// The index on the tier that this node resides on.
+        /// </summary>
+        [DataMember(Name = "TierIndex")]
+        protected int _tierIndex;
 
         #endregion
 
@@ -127,6 +137,34 @@ namespace SwarmNet
                     return _neighbors[index];
                 else
                     return null;
+            }
+        }
+        /// <summary>
+        /// The tier of the graph that this node occupies.
+        /// </summary>
+        public int Tier
+        {
+            get
+            {
+                return _tier;
+            }
+            set
+            {
+                _tier = Math.Abs(value);
+            }
+        }
+        /// <summary>
+        /// The index into the tier that this node occupies.
+        /// </summary>
+        public int TierIndex
+        {
+            get
+            {
+                return _tierIndex;
+            }
+            set
+            {
+                _tierIndex = Math.Abs(value);
             }
         }
 

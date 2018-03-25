@@ -11,10 +11,10 @@ namespace SwarmNet
         #region Fields
 
         /// <summary>
-        /// The head node of the graph.
+        /// The agents on the graph.
         /// </summary>
-        [DataMember(Name = "Roots", Order = 2)]
-        private RootNode<JI, JO, TI, TO>[] _roots;
+        [DataMember(Name = "Agents", Order = 1)]
+        private List<Agent<JI, JO, TI, TO>> _agents;
         /// <summary>
         /// The branch nodes of the graph.
         /// </summary>
@@ -26,15 +26,30 @@ namespace SwarmNet
         [DataMember(Name = "Leaves", Order = 4)]
         private LeafNode<JI, JO, TI, TO>[] _leaves;
         /// <summary>
-        /// The agents on the graph.
+        /// The head node of the graph.
         /// </summary>
-        [DataMember(Name = "Agents", Order = 1)]
-        private List<Agent<JI, JO, TI, TO>> _agents;
+        [DataMember(Name = "Roots", Order = 2)]
+        private RootNode<JI, JO, TI, TO>[] _roots;
+        /// <summary>
+        /// The number of nodes in each tier.
+        /// </summary>
+        [DataMember(Name = "TierCount")]
+        private int[] _tiers;
 
         #endregion
 
         #region Properties
 
+        /// <summary>
+        /// The agents of the graph.
+        /// </summary>
+        public Agent<JI, JO, TI, TO>[] Agents
+        {
+            get
+            {
+                return _agents.ToArray();
+            }
+        }
         /// <summary>
         /// The branches of the graph.
         /// </summary>
@@ -43,16 +58,6 @@ namespace SwarmNet
             get
             {
                 return _branches;
-            }
-        }
-        /// <summary>
-        /// The head of the graph.
-        /// </summary>
-        public RootNode<JI, JO, TI, TO>[] Roots
-        {
-            get
-            {
-                return _roots;
             }
         }
         /// <summary>
@@ -66,13 +71,23 @@ namespace SwarmNet
             }
         }
         /// <summary>
-        /// The agents of the graph.
+        /// The head of the graph.
         /// </summary>
-        public Agent<JI, JO, TI, TO>[] Agents
+        public RootNode<JI, JO, TI, TO>[] Roots
         {
             get
             {
-                return _agents.ToArray();
+                return _roots;
+            }
+        }
+        /// <summary>
+        /// The number of tiers there are in the graph.
+        /// </summary>
+        public int TiersCount
+        {
+            get
+            {
+                return _tiers.Length;
             }
         }
 
@@ -124,24 +139,32 @@ namespace SwarmNet
         /// <param name="offset">The offset from the average.</param>
         public void GenTree(Random rand, int total_remain, int max_children, int offset, int leaf_chance)
         {
-            int n_kids_tot, c_kids_tot, n_kids_max, n_kids_min, kids_remain, avg_kpn, real_kpn, min;
+            int n_kids_tot, c_kids_tot, n_kids_max, n_kids_min, kids_remain, avg_kpn, real_kpn, tier, tier_index, min;
             GraphNode<JI, JO, TI, TO>[] cur_tier;
             List<GraphNode<JI, JO, TI, TO>> next_tier;
             RootNode<JI, JO, TI, TO> root;
             List<BranchNode<JI, JO, TI, TO>> branches;
             List<LeafNode<JI, JO, TI, TO>> leaves;
             GraphNode<JI, JO, TI, TO> current;
+            List<int> tiers;
             bool isRoot;
 
             // Initialize branches and leaves;
             branches = new List<BranchNode<JI, JO, TI, TO>>();
             leaves = new List<LeafNode<JI, JO, TI, TO>>();
+            tiers = new List<int>();
+            // Initialize the positioning variables
+            tier = 0;
+            tier_index = 0;
             // The head will have one neighbor
             n_kids_tot = 1;
             // Subtract the head and it's neighbor from the remaining total
             total_remain -= n_kids_tot + 1;
             // Initialize the head
             root = new RootNode<JI, JO, TI, TO>();
+            root.Tier = tier;
+            root.TierIndex = tier_index;
+            tier_index++;
             // Insert head as only node of next tier of nodes to work on
             next_tier = new List<GraphNode<JI, JO, TI, TO>>() { root };
             // set first tier bool
@@ -152,6 +175,9 @@ namespace SwarmNet
                 // Set next tier as current tier and get new next tier
                 cur_tier = next_tier.ToArray();
                 next_tier = new List<GraphNode<JI, JO, TI, TO>>();
+                tier++;
+                tiers.Add(tier_index);
+                tier_index = 0;
                 // Set next total to current tier and reset next total
                 c_kids_tot = n_kids_tot;
                 n_kids_tot = 0;
@@ -215,6 +241,10 @@ namespace SwarmNet
                             branches.Add((BranchNode<JI, JO, TI, TO>)current);
                             next_tier.Add(current);
                         }
+                        // Position current node
+                        current.Tier = tier;
+                        current.TierIndex = tier_index;
+                        tier_index++;
                         // Add node to graph
                         cur_tier[i].AddNeighbor(current);
                     }
@@ -230,6 +260,7 @@ namespace SwarmNet
             _roots = new RootNode<JI, JO, TI, TO>[] { root };
             _branches = branches.ToArray();
             _leaves = leaves.ToArray();
+            _tiers = tiers.ToArray();
         }
         /// <summary>
         /// Converts a tree styled rigging graph to a model graph.
@@ -512,6 +543,23 @@ namespace SwarmNet
             }
 
             return doneTick;
+        }
+
+        #endregion
+
+        #region Methods - Logistics
+
+        /// <summary>
+        /// The number of nodes in a tier.
+        /// </summary>
+        /// <param name="index">The tier to get the number of nodes from.</param>
+        /// <returns>The number of nodes in the requested tier.</returns>
+        public int TierCount(int index)
+        {
+            if (index < 0 || index > _tiers.Length)
+                throw new ArgumentException("Index out of range.");
+
+            return _tiers[index];
         }
 
         #endregion
