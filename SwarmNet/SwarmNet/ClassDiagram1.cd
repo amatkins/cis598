@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="SwarmNet.Agent&lt;JI, JO, TI, TO&gt;" BaseTypeListCollapsed="true">
+    <Position X="12.75" Y="4" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAgAAQEAAAAAAAAAAAAAAABAAAAAAAQAAA=</HashCode>
+      <FileName>Agent.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="SwarmNet.Message&lt;T&gt;">
+    <Position X="12.75" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAABAAAA=</HashCode>
+      <FileName>Message.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SwarmNet.BranchNode&lt;JI, JO, TI, TO&gt;">
+    <Position X="5.5" Y="3.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAgAAAADAAAAAAAIAAAAAAAAAA=</HashCode>
+      <FileName>ModelSet\BranchNode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SwarmNet.GraphNode&lt;JI, JO, TI, TO&gt;">
+    <Position X="10.5" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>UABgAQAIAIAAAABAAAACAAAAQAAABAAAIAAAIAAIYCA=</HashCode>
+      <FileName>ModelSet\GraphNode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SwarmNet.Junction&lt;JI, JO, TI, TO&gt;">
+    <Position X="8" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAAAAAAAAAAADAAAAAAAAAgABAAAAAA=</HashCode>
+      <FileName>ModelSet\Junction.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SwarmNet.LeafNode&lt;JI, JO, TI, TO&gt;">
+    <Position X="8" Y="3" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABAAAAAAAAAAADAAAAAAAIAAAAAAAAAA=</HashCode>
+      <FileName>ModelSet\LeafNode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SwarmNet.ModelGraph&lt;JI, JO, TI, TO&gt;">
+    <Position X="0.5" Y="2.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AIAAAAAAAAAAAAQAAAEAAAAgAAEFAAAAAAAAAAAEwAA=</HashCode>
+      <FileName>ModelSet\ModelGraph.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SwarmNet.Port&lt;JI, JO, TI, TO&gt;">
+    <Position X="3.25" Y="1" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAEEAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ModelSet\Port.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SwarmNet.RootNode&lt;JI, JO, TI, TO&gt;">
+    <Position X="3.25" Y="2.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAACAGEAAAQIAAAAAAIAAA=</HashCode>
+      <FileName>ModelSet\RootNode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SwarmNet.SetPiece&lt;JI, JO, TI, TO&gt;">
+    <Position X="0.5" Y="0.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ModelSet\SetPiece.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SwarmNet.Terminal&lt;JI, JO, TI, TO&gt;">
+    <Position X="5.5" Y="0.75" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ModelSet\Terminal.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="SwarmNet.CommType">
+    <Position X="12.75" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGgAAAA=</HashCode>
+      <FileName>Message.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

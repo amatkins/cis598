@@ -4,32 +4,32 @@ using System.Runtime.Serialization;
 namespace SwarmNet
 {
     [DataContract(IsReference = true, Name = "Leaf", Namespace = "SwarmNet")]
-    public class LeafNode<JI, JO, TI, TO> : GraphNode<JI, JO, TI, TO>
+    public class LeafNode : GraphNode
     {
         #region Properties
 
         /// <summary>
         /// The exit from this node.
         /// </summary>
-        public override GraphNode<JI, JO, TI, TO> Exit
+        public override GraphNode Exit
         {
             get
             {
-                return _neighbors[0];
+                return Neighbors[0];
             }
         }
         /// <summary>
         /// The terminal on this node.
         /// </summary>
-        public Terminal<JI, JO, TI, TO> Terminal
+        public Terminal Terminal
         {
             get
             {
-                return (Terminal<JI, JO, TI, TO>)_piece;
+                return (Terminal)Piece;
             }
             set
             {
-                _piece = value;
+                Piece = value;
             }
         }
 
@@ -42,24 +42,24 @@ namespace SwarmNet
         /// </summary>
         public LeafNode()
         {
-            _inFlow = new List<Agent<JI, JO, TI, TO>>();
-            _neighbors = new GraphNode<JI, JO, TI, TO>[1];
+            In = new List<Agent>();
+            Neighbors = new GraphNode[1];
             _nextNeighbor = 0;
-            _outFlow = new List<Agent<JI, JO, TI, TO>>();
-            _piece = null;
+            Out = new List<Agent>();
+            Piece = null;
         }
         /// <summary>
         /// Constructs a new leaf node that contains the provided terminal.
         /// </summary>
         /// <param name="terminal">The terminal this node will have.</param>
         /// <param name="neighbors">The max number of neighbors this node can have.</param>
-        public LeafNode(Terminal<JI, JO, TI, TO> terminal)
+        public LeafNode(Terminal terminal)
         {
-            _inFlow = new List<Agent<JI, JO, TI, TO>>();
-            _neighbors = new GraphNode<JI, JO, TI, TO>[1];
+            In = new List<Agent>();
+            Neighbors = new GraphNode[1];
             _nextNeighbor = 0;
-            _outFlow = new List<Agent<JI, JO, TI, TO>>();
-            _piece = terminal;
+            Out = new List<Agent>();
+            Piece = terminal;
             terminal.Location = this;
         }
 
@@ -72,17 +72,17 @@ namespace SwarmNet
         /// </summary>
         /// <param name="m">The message to pass to the set piece.</param>
         /// <returns>The response from the set piece.</returns>
-        public Message<TO> Communicate(Message<TI> m)
+        public Message Communicate(Message m)
         {
-            return ((Terminal<JI, JO, TI, TO>)_piece).Communicate(m);
+            return ((Terminal)Piece).Communicate(m);
         }
         /// <summary>
         /// Starts communication with an agent.
         /// </summary>
         /// <returns>The first message.</returns>
-        public Message<TO> InitComm()
+        public Message InitComm()
         {
-            return ((Terminal<JI, JO, TI, TO>)_piece).InitComm();
+            return ((Terminal)Piece).InitComm();
         }
 
         #endregion

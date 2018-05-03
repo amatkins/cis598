@@ -31,10 +31,10 @@
             this.mainLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
             this.tabLayoutPanel = new System.Windows.Forms.TabControl();
             this.branchesPage = new System.Windows.Forms.TabPage();
-            this.leavesPage = new System.Windows.Forms.TabPage();
-            this.agentsPage = new System.Windows.Forms.TabPage();
             this.branchesText = new System.Windows.Forms.TextBox();
+            this.leavesPage = new System.Windows.Forms.TabPage();
             this.leavesText = new System.Windows.Forms.TextBox();
+            this.agentsPage = new System.Windows.Forms.TabPage();
             this.agentsText = new System.Windows.Forms.TextBox();
             this.runButton = new System.Windows.Forms.Button();
             this.mainLayoutPanel.SuspendLayout();
@@ -82,6 +82,17 @@
             this.branchesPage.Text = "Branches";
             this.branchesPage.UseVisualStyleBackColor = true;
             // 
+            // branchesText
+            // 
+            this.branchesText.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.branchesText.Location = new System.Drawing.Point(3, 3);
+            this.branchesText.Multiline = true;
+            this.branchesText.Name = "branchesText";
+            this.branchesText.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.branchesText.Size = new System.Drawing.Size(1436, 660);
+            this.branchesText.TabIndex = 0;
+            this.branchesText.WordWrap = false;
+            // 
             // leavesPage
             // 
             this.leavesPage.Controls.Add(this.leavesText);
@@ -92,6 +103,17 @@
             this.leavesPage.TabIndex = 1;
             this.leavesPage.Text = "Leaves";
             this.leavesPage.UseVisualStyleBackColor = true;
+            // 
+            // leavesText
+            // 
+            this.leavesText.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.leavesText.Location = new System.Drawing.Point(3, 3);
+            this.leavesText.Multiline = true;
+            this.leavesText.Name = "leavesText";
+            this.leavesText.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.leavesText.Size = new System.Drawing.Size(1436, 660);
+            this.leavesText.TabIndex = 1;
+            this.leavesText.WordWrap = false;
             // 
             // agentsPage
             // 
@@ -104,34 +126,9 @@
             this.agentsPage.Text = "Agents";
             this.agentsPage.UseVisualStyleBackColor = true;
             // 
-            // branchesText
-            // 
-            this.branchesText.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.branchesText.Enabled = false;
-            this.branchesText.Location = new System.Drawing.Point(3, 3);
-            this.branchesText.Multiline = true;
-            this.branchesText.Name = "branchesText";
-            this.branchesText.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.branchesText.Size = new System.Drawing.Size(1436, 660);
-            this.branchesText.TabIndex = 0;
-            this.branchesText.WordWrap = false;
-            // 
-            // leavesText
-            // 
-            this.leavesText.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.leavesText.Enabled = false;
-            this.leavesText.Location = new System.Drawing.Point(3, 3);
-            this.leavesText.Multiline = true;
-            this.leavesText.Name = "leavesText";
-            this.leavesText.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.leavesText.Size = new System.Drawing.Size(1436, 660);
-            this.leavesText.TabIndex = 1;
-            this.leavesText.WordWrap = false;
-            // 
             // agentsText
             // 
             this.agentsText.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.agentsText.Enabled = false;
             this.agentsText.Location = new System.Drawing.Point(3, 3);
             this.agentsText.Multiline = true;
             this.agentsText.Name = "agentsText";

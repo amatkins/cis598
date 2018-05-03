@@ -9,16 +9,12 @@ namespace PolyE
     public enum AlgOp {
         [EnumMember(Value = "Ad")]
         ADD,
-        [EnumMember(Value = "Su")]
-        SUB,
         [EnumMember(Value = "Mu")]
-        MUL,
-        [EnumMember(Value = "Di")]
-        DIV
+        MUL
     };
 
     [DataContract(Name = "Expression", Namespace = "PolyE")]
-    class Expression : Agent<int, int, string, Tuple<int, int, AlgOp>>
+    class Expression : Agent
     {
         #region Fields
 
@@ -64,8 +60,8 @@ namespace PolyE
         public Expression(string tag, int priority, params int[] coeffs)
         {
             _coeffs = coeffs;
-            _priority = priority;
-            _tag = tag;
+            Priority = priority;
+            Tag = tag;
         }
 
         #endregion
@@ -88,14 +84,8 @@ namespace PolyE
                 case AlgOp.ADD:
                     _coeffs[index] += value;
                     break;
-                case AlgOp.DIV:
-                    _coeffs[index] /= value;
-                    break;
                 case AlgOp.MUL:
                     _coeffs[index] *= value;
-                    break;
-                case AlgOp.SUB:
-                    _coeffs[index] -= value;
                     break;
             }
         }
@@ -143,7 +133,7 @@ namespace PolyE
         /// <returns>The string representation of this expression.</returns>
         public override string ToString()
         {
-            return string.Format("Expression: Id: {0} Exprn: {1}", _tag, string.Join("+", _coeffs.Select((c, i) => c == 0 ? "" : string.Format("{0}*x^{1}", c, i)).Where(x => !x.Equals("")).ToArray()));
+            return string.Format("Id: {0} Exprn: {1}", Tag, string.Join("+", _coeffs.Select((c, i) => c == 0 ? "" : string.Format("{0}*x^{1}", c, i)).Where(x => !x.Equals("")).ToArray()));
         }
 
         #endregion
@@ -155,19 +145,36 @@ namespace PolyE
         /// </summary>
         /// <param name="m">The message containing the state of the junction.</param>
         /// <returns>The finish message containing the new state.</returns>
-        public override Message<int> CommJunc(Message<int> m)
+        public override Message CommJunc(Message m)
         {
-            return new Message<int>(CommType.FINISH, Evaluate(m.Contents));
+            if (m.Contents != null)
+                return new Message(Evaluate((int)m.Contents), CommType.TERM);
+
+            return new Message(null, CommType.TERM);
+        }
+        /// <summary>
+        /// Communication between agents and ports is unnecessary so a null terminator is sent.
+        /// </summary>
+        /// <param name="m">Incoming message from port.</param>
+        /// <returns>Null terminating message.</returns>
+        public override Message CommPort(Message m)
+        {
+            return new Message(null, CommType.TERM);
         }
         /// <summary>
         /// Modifies the expression using the mod in the message.
         /// </summary>
         /// <param name="m">The message containing the mod from the terminal.</param>
         /// <returns>The finish message containing the new term in the expression.</returns>
-        public override Message<string> CommTerm(Message<Tuple<int, int, AlgOp>> m)
+        public override Message CommTerm(Message m)
         {
-            ModTerm(m.Contents.Item1, m.Contents.Item2, m.Contents.Item3);
-            return new Message<string>(CommType.FINISH, TermToString(m.Contents.Item1));
+            if (m.Contents != null)
+            {
+                Tuple<int, int, AlgOp> mssg = (Tuple<int, int, AlgOp>)m.Contents;
+                ModTerm(mssg.Item1, mssg.Item2, mssg.Item3);
+                return new Message(TermToString(mssg.Item1), CommType.TERM);
+            }
+            return new Message(null, CommType.TERM);
         }
 
         #endregion

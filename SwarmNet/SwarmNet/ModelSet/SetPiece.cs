@@ -6,34 +6,31 @@ namespace SwarmNet
 {
     [DataContract(Name = "SetPiece", Namespace = "SwarmNet")]
     [KnownType("GetKnownTypes")]
-    public abstract class SetPiece<JI, JO, TI, TO>
+    public abstract class SetPiece
     {
-        #region Fields
-
-        /// <summary>
-        /// The node that this set piece belongs to.
-        /// </summary>
-        [DataMember(Name = "Location")]
-        protected GraphNode<JI, JO, TI, TO> _loc;
-
-        #endregion
-
         #region Properties
 
         /// <summary>
         /// The node that this set piece is on.
         /// </summary>
-        public GraphNode<JI, JO, TI, TO> Location
-        {
-            get
-            {
-                return _loc;
-            }
-            set
-            {
-                _loc = value;
-            }
-        }
+        [DataMember]
+        public GraphNode Location { get; set; }
+
+        #endregion
+
+        #region Methods - Communication
+
+        /// <summary>
+        /// Communicate with an agent.
+        /// </summary>
+        /// <param name="m">The message from the agent.</param>
+        /// <returns>The response from the setpiece.</returns>
+        public abstract Message Communicate(Message m);
+        /// <summary>
+        /// Initiate communications with an agent.
+        /// </summary>
+        /// <returns>The first message.</returns>
+        public abstract Message InitComm();
 
         #endregion
 
@@ -47,9 +44,9 @@ namespace SwarmNet
         {
             List<Type> types = new List<Type>();
 
-            types.Add(typeof(Portal<JI, JO, TI, TO>));
-            types.Add(typeof(Junction<JI, JO, TI, TO>));
-            types.Add(typeof(Terminal<JI, JO, TI, TO>));
+            types.Add(typeof(Port));
+            types.Add(typeof(Junction));
+            types.Add(typeof(Terminal));
 
             return types.ToArray();
         }

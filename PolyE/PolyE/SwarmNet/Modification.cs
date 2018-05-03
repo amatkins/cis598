@@ -5,7 +5,7 @@ using SwarmNet;
 namespace PolyE
 {
     [DataContract(Name = "Modification", Namespace = "PolyE")]
-    public class Modification : Terminal<int, int, string, Tuple<int, int, AlgOp>>
+    public class Modification : Terminal
     {
         #region Fields
 
@@ -87,7 +87,7 @@ namespace PolyE
         /// <returns>String representation of this modification.</returns>
         public override string ToString()
         {
-            return string.Format("Modification: {0} {1} {2}", _term, _oper, _val);
+            return string.Format("{0} {1} {2}", _term, _oper, _val);
         }
 
         #endregion
@@ -99,17 +99,17 @@ namespace PolyE
         /// </summary>
         /// <param name="m">Message containing the updated term.</param>
         /// <returns>Termination message containing the term modification.</returns>
-        public override Message<Tuple<int, int, AlgOp>> Communicate(Message<string> m)
+        public override Message Communicate(Message m)
         {
-            return new Message<Tuple<int, int, AlgOp>>(CommType.FINISH, new Tuple<int, int, AlgOp>(_term, _val, _oper));
+            return new Message(null, CommType.TERM);
         }
         /// <summary>
         /// Initiates the transaction.
         /// </summary>
         /// <returns>Initial message containing the term modification.</returns>
-        public override Message<Tuple<int, int, AlgOp>> InitComm()
+        public override Message InitComm()
         {
-            return new Message<Tuple<int, int, AlgOp>>(CommType.START, new Tuple<int, int, AlgOp>(_term, _val, _oper));
+            return new Message(new Tuple<int, int, AlgOp>(_term, _val, _oper), CommType.INIT);
         }
 
         #endregion

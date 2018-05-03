@@ -14,7 +14,7 @@ namespace PolyE
         /// The graph of the model.
         /// </summary>
         [DataMember(Name = "Graph")]
-        private ModelGraph<int, int, string, Tuple<int, int, AlgOp>> _graph;
+        private ModelGraph _graph;
         /// <summary>
         /// The random number generator for the model.
         /// </summary>
@@ -34,7 +34,7 @@ namespace PolyE
         public PolyEModel(int nodes, int kids, int offset, int leaf)
         {
             _rand = new Random();
-            _graph = new ModelGraph<int, int, string, Tuple<int, int, AlgOp>>(_rand, nodes, kids, offset, leaf);
+            _graph = new ModelGraph(_rand, nodes, kids, offset, leaf);
             _graph.BuildSet(SpawnMaker, JuncMaker, TermMaker);
         }
 
@@ -71,6 +71,7 @@ namespace PolyE
         public Modification TermMaker()
         {
             return new Modification(_rand.Next(1, 6), AlgOp.ADD, _rand.Next(32) - 16);
+            //return new Modification(_rand.Next(1, 6), (AlgOp)_rand.Next(2), _rand.Next(32) - 16);
         }
 
         #endregion
@@ -85,7 +86,7 @@ namespace PolyE
         {
             return string.Format("{0}" + Environment.NewLine + "[{1}]" + Environment.NewLine + "[{2}]" + Environment.NewLine + "[{3}]",
                 string.Join(Environment.NewLine, _graph.Roots.Select(n => string.Format("Head: ({0} In: [{1}] Out: [{2}])",
-                    ((ExprGenerator)n.Portal).ToString(),
+                    ((ExprGenerator)n.Port).ToString(),
                     string.Join(", ", n.In.Cast<Expression>()),
                     string.Join(", ", n.Out.Cast<Expression>())))),
                 string.Join(Environment.NewLine, _graph.Branches.Select(n => string.Format("Branch: ({0} In: [{1}] Out:[{2}])",
@@ -104,11 +105,10 @@ namespace PolyE
         /// <returns>The string representation of the branches of the model.</returns>
         public string BranchesString()
         {
-            return string.Join(Environment.NewLine, _graph.Branches.Select(n => string.Format("Branch: ({0} {1} In: [{2}] Out:[{3}])",
+            return string.Join(Environment.NewLine, _graph.Branches.Select(n => string.Format("({0} {1} Out:[{2}])",
                     n.Junction.State,
                     ((Conditional)n.Junction).ToString(),
-                    string.Join(", ", n.In.Cast<Expression>()),
-                    string.Join(", ", n.Out.Cast<Expression>()))));
+                    string.Join(", ", n.Out.Select(a => ((Expression)a).Tag)))));
         }
         /// <summary>
         /// Gets a string representation of the head and leaves of the model.
@@ -117,14 +117,12 @@ namespace PolyE
         public string LeavesString()
         {
             return string.Format("[{0}" + Environment.NewLine + "{1}]",
-                string.Join(Environment.NewLine, _graph.Roots.Select(n => string.Format("Head: ({0} In: [{1}] Out: [{2}])",
-                    ((ExprGenerator)n.Portal).ToString(),
-                    string.Join(", ", n.In.Cast<Expression>()),
-                    string.Join(", ", n.Out.Cast<Expression>())))),
-                string.Join(Environment.NewLine, _graph.Leaves.Select(n => string.Format("Leaf: ({0} In: [{1}] Out:[{2}])",
+                string.Join(Environment.NewLine, _graph.Roots.Select(n => string.Format("({0} Out: [{1}])",
+                    ((ExprGenerator)n.Port).ToString(),
+                    string.Join(", ", n.Out.Select(a => ((Expression)a).Tag))))),
+                string.Join(Environment.NewLine, _graph.Leaves.Select(n => string.Format("({0} Out:[{1}])",
                     ((Modification)n.Terminal).ToString(),
-                    string.Join(", ", n.In.Cast<Expression>()),
-                    string.Join(", ", n.Out.Cast<Expression>())))));
+                    string.Join(", ", n.Out.Select(a => ((Expression)a).Tag))))));
         }
         /// <summary>
         /// Gets a string representation of just the agents of the model.
@@ -139,7 +137,7 @@ namespace PolyE
 
         public void Tick()
         {
-            if (_graph.Agents.Length < 10)
+            if (_graph.Agents.Count < 50)
                 _graph.Enter(0);
 
             _graph.Tick();

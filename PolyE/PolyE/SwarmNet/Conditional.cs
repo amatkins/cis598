@@ -5,14 +5,14 @@ using SwarmNet;
 namespace PolyE
 {
     [DataContract(Name = "Conditional", Namespace = "PolyE")]
-    public class Conditional : Junction<int, int, string, Tuple<int, int, AlgOp>>
+    public class Conditional : Junction
     {
         #region Fields
 
         /// <summary>
         /// Divids the state-space to fit the paths.
         /// </summary>
-        [DataMember(Name = "Dividers")]
+        [DataMember(Name = "Divisions")]
         private int[] _divs;
 
         #endregion
@@ -27,8 +27,8 @@ namespace PolyE
         public Conditional(int max, int paths)
         {
             _divs = new int[paths - 1];
-            _max = max;
-            _state = 0;
+            Max = max;
+            State = 0;
 
             int div = max / (paths - 1),
                 dif = div;
@@ -57,7 +57,7 @@ namespace PolyE
             }
             else
             {
-                if (d < _max)
+                if (d < Max)
                     _divs[i] = d;
             }
         }
@@ -84,7 +84,7 @@ namespace PolyE
         /// <returns>The string representation of this conditional.</returns>
         public override string ToString()
         {
-            return string.Format("Conditional: [{0}]", string.Join(", ", _divs));
+            return string.Format("[{0}]", string.Join(", ", _divs));
         }
 
         #endregion
@@ -96,10 +96,11 @@ namespace PolyE
         /// </summary>
         /// <param name="m">The message containing the new state.</param>
         /// <returns>The termination message.</returns>
-        public override Message<int> Communicate(Message<int> m)
+        public override Message Communicate(Message m)
         {
-            _state = m.Contents % _max;
-            return new Message<int>(CommType.FINISH, _state);
+            if (m.Contents != null)
+                State = (int)m.Contents % Max;
+            return new Message(null, CommType.TERM);
         }
         /// <summary>
         /// Determines an exit path based on the current state and the state-space partitions.
@@ -110,7 +111,7 @@ namespace PolyE
         {
             for (int i = 0; i < _divs.Length; i++)
             {
-                if (_state < _divs[i])
+                if (State < _divs[i])
                     return i;
             }
             
@@ -120,9 +121,9 @@ namespace PolyE
         /// Presents state for update.
         /// </summary>
         /// <returns>The initial message with the state of the junction.</returns>
-        public override Message<int> InitComm()
+        public override Message InitComm()
         {
-            return new Message<int>(CommType.START, _state);
+            return new Message(State, CommType.INIT);
         }
 
         #endregion

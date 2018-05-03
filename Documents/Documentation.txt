@@ -1,0 +1,283 @@
+╔═══════════════════════╗
+║ Table of Contents		║
+╚═══════════════════════╝
+	╔═══════════════════════════════════════════════╗
+	║ 1. Components									║
+	╟───────────────────────────────────────────────╢
+	║	1.1. ModelGraph								║
+	╟╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╢
+	║		1.1.1. GraphNode						║
+	║			1.1.1.1. RootNode					║
+	║			1.1.1.2. BranchNode					║
+	║			1.1.1.3. LeafNode					║
+	╟┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╢
+	║		1.1.2. SetPiece							║
+	║			1.1.2.1. Port						║
+	║			1.1.2.2. Junction					║
+	║			1.1.2.3. Terminal					║
+	╟╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╢
+	║ 	1.2. Agent									║
+	╟╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╢
+	║ 	1.3. Message								║
+	╠═══════════════════════════════════════════════╣
+	║ 2. Getting started							║
+	╟───────────────────────────────────────────────╢
+	║	2.1. Agents									║
+	╚═══════════════════════════════════════════════╝
+
+
+╔═══════════════════════╗
+║ 1. Components			║
+╚═══════════════════════╝
+	┌───────────────────────────────────────────────┐
+	│ 1.1. ModelGraph								│
+	├───────────────────────────────────────────────┤
+	│ Properties:									│
+	├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+	│ Agents: Array of agents on the graph.			│
+	│												│
+	│ Branches: Array of branch nodes in the graph.	│
+	│												│
+	│ Leaves: Array of leaf nodes in the graph.		│
+	│												│
+	│ Roots: Array of root nodes in the graph.		│
+	│												│
+	│ TierCounts: Number of nodes in each tier.		│
+	├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+	│ Methods:										│
+	├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+	│ BuildSet: Uses user-defined functions to place│
+	│	set pieces on all of the appropriate nodes.	│
+	│												│
+	│ Enter: Adds a new agent to the graph via one	│
+	│	of the ports.								│
+	│												│
+	│ GenTree: Generates a random tree with a speci-│
+	│	fic number of nodes.						│
+	│												│
+	│ Leave: Removes an agent from the graph from	│
+	│	one of the ports.							│
+	│												│
+	│ SemiTick: Performs agent-graph interactions	│
+	│	for one agent waiting on each node.			│
+	│												│
+	│ Tick: Performs agent-graph interactions for	│
+	│	all agents waiting on each node.			│
+	└───────────────────────────────────────────────┘
+	
+		┌───────────────────────────────────────────────┐
+		│ 1.1.1. GraphNode								│
+		├───────────────────────────────────────────────┤
+		│ Properties:									│
+		├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+		│ AngularIndex: Position on a given radius in a │
+		│	circular layout scheme.						│
+		│												│
+		│ Exit: Node an agent will travel to when leav- │
+		│	ing this node.								│
+		│												│
+		│ In: Agents entering this node.				│
+		│												│
+		│ IsSurrounded: True if all available neighbor	│
+		│	node spaces are occupied by a node.			│
+		│												│
+		│ Neighbors: Array of neighboring nodes.		│
+		│												│
+		│ Out: Agents leaving this node.				│
+		│												│
+		│ Piece: Set piece that defines node function.	│
+		│												│
+		│ RadiusIndex: Position from center in a circu-	│
+		│	lar layout scheme.							│
+		│												│
+		│ X: X position in a grid layout scheme.		│
+		│												│
+		│ Y: Y position in a grid layout scheme.		│
+		├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+		│ Methods:										│
+		├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+		│ AddNeighbor: A bi-directional linking of this │
+		│	node to another node.						│
+		│												│
+		│ Dequeue: Removes the first agent in the outgo-│
+		│	ing queue.									│
+		│												│
+		│ Enqueue: Adds an agent to the incoming queue	│
+		│	and sorts the queue based on agent priority.│
+		│												│
+		│ Flush: Moves all the incoming agents to the	│
+		│	outgoing queue to be processed.				│
+		│												│
+		│ RemoveNeighbor: Detaches the specified neigh- │
+		│	bor node if it exists.						│
+		│												│
+		│ SwapNeighbor: Detaches the specified neighbor │
+		│	node if it exists and replaces it with an-  │
+		│	other node.									│
+		└───────────────────────────────────────────────┘
+	
+			┌───────────────────────────────────────────────┐
+			│ 1.1.1.1. RootNode								│
+			├───────────────────────────────────────────────┤
+			│ Properties:									│
+			├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+			│ Exit: Destination node for agents entering the│
+			│	graph.										│
+			│												│
+			│ ExternalIn: External inflow queue.			│
+			│												│
+			│ ExternalOut: External outflow queue.			│
+			│												│
+			│ Port: Port piece used for node functionality.	│
+			├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+			│ Methods:										│
+			├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+			│ Enter: Uses the port to spawn a new agent.	│
+			│												│
+			│ Flush: Moves all external incoming agents to	│
+			│	the internal out queue and all internal in- │
+			│	coming agents to the external out queue.	│
+			│												│
+			│ Leave: Uses the port to remove a queued agent.│
+			└───────────────────────────────────────────────┘
+	
+			┌───────────────────────────────────────────────┐
+			│ 1.1.1.2. BranchNode							│
+			├───────────────────────────────────────────────┤
+			│ Properties:									│
+			├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+			│ Exit: Destination node for exiting agents.	│
+			│												│
+			│ Junction: Junction piece used for node func-	│
+			│	tionality.									│
+			├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+			│ Methods:										│
+			├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+			│ Communicate: Pass a message to the junction	│
+			│	and return the response to an agent.		│
+			│												│
+			│ InitComm: Use the junction to innitiate com-	│
+			│	munication with an agent.					│
+			└───────────────────────────────────────────────┘
+	
+			┌───────────────────────────────────────────────┐
+			│ 1.1.1.3. LeafNode								│
+			├───────────────────────────────────────────────┤
+			│ Properties:									│
+			├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+			│ Exit: Desitnation node for agents re--entering│
+			│	the graph.									│
+			│												│
+			│ Terminal: Terminal piece used for node func-	│
+			│	tionality.									│
+			├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+			│ Methods:										│
+			├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+			│ Communicate: Pass a message to the terminal	│
+			│	and return the response to an agent.		│
+			│												│
+			│ InitComm: Use the terminal to innitiate com-	│
+			│	munication with an agent.					│
+			└───────────────────────────────────────────────┘
+	
+		┌───────────────────────────────────────────────┐
+		│ 1.1.2. SetPiece								│
+		├───────────────────────────────────────────────┤
+		│ Properties:									│
+		├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+		│ Location: Node where this piece resides.		│
+		└───────────────────────────────────────────────┘
+	
+			┌───────────────────────────────────────────────┐
+			│ 1.1.2.1. Port									│
+			├───────────────────────────────────────────────┤
+			│ Methods:										│
+			├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+			│ Enter: Spawns a new agent.					│
+			│												│
+			│ Leave: Remove an agent.						│
+			└───────────────────────────────────────────────┘
+	
+			┌───────────────────────────────────────────────┐
+			│ 1.1.2.2. Junction								│
+			├───────────────────────────────────────────────┤
+			│ Properties:									│
+			├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+			│ Max: Maximum numerical state.					│
+			│												│
+			│ State: Current numerical state.				│
+			├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+			│ Methods:										│
+			├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+			│ Communicate: Respond to a message.			│
+			│												│
+			│ GetExit: Get exit node based on current state.│
+			│												│
+			│ InitComm: Create initial message.				│
+			└───────────────────────────────────────────────┘
+	
+			┌───────────────────────────────────────────────┐
+			│ 1.1.2.3. Terminal								│
+			├───────────────────────────────────────────────┤
+			│ Methods:										│
+			├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+			│ Communicate: Respond to a message.			│
+			│												│
+			│ InitComm: Create initial message.				│
+			└───────────────────────────────────────────────┘
+	
+	┌───────────────────────────────────────────────┐
+	│ 1.2. Agent									│
+	├───────────────────────────────────────────────┤
+	│ Properties:									│
+	├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+	│ Priority: Priority of agent in queues.		│
+	│												│
+	│ Tag: Unique identifier.						│
+	├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┤
+	│ Methods:										│
+	├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+	│ CommJunc: Responds to a junction message.		│
+	│												│
+	│ CommTerm:	Responds to a terminal message.		│
+	│												│
+	│ CompareTo: Compares this and another agent's  │
+	│	priority.									│
+	└───────────────────────────────────────────────┘
+	
+	┌───────────────────────────────────────────────┐
+	│ 1.3. Message									│
+	├───────────────────────────────────────────────┤
+	│ Properties:									│
+	├┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┤
+	│ Contents:	What is in the message.				│
+	│												│
+	│ Type: Initial, response, or end conversation.	│
+	└───────────────────────────────────────────────┘
+
+
+╔═══════════════════════╗
+║ 2. Getting started	║
+╚═══════════════════════╝
+	┌───────────────────────────────────────────────────────┐
+	│ 2.1. Agents											│
+	├───────────────────────────────────────────────────────┤
+	│	Agents can communicate with junctions when they are	│
+	│on branch nodes and with terminals when they are on	│
+	│leaf nodes. The standard is to have agents alter junc-	│
+	│tions when they communicate and have terminals alter a-│
+	│gents when	they communicate.							│
+	│														│
+	│	In the standard, an agent alters a junction to alter│
+	│the flow of traffic through the corresponding node.	│
+	│However, changing the junction can facilitate other	│
+	│functions. There is also nothing strictly prohibiting	│
+	│the junction from altering the agent. It is merely a	│
+	│part of the standard to enforce clear functionality.	│
+	│														│
+	│	In the standard, a terminal alters an agent to ad-	│
+	│just its behavior. Again, there is nothing prohibitng	│
+	│an agent from altering the terminal and doing such		│
+	│could be useful. However, the standard suggests a soft	│
+	│limit to this approach to enforce a clear structure.	│
+	└───────────────────────────────────────────────────────┘

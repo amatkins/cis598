@@ -4,87 +4,42 @@ using System.Runtime.Serialization;
 namespace SwarmNet
 {
     [DataContract(IsReference = true, Name = "Root", Namespace = "SwarmNet")]
-    public class RootNode<JI, JO, TI, TO> : GraphNode<JI, JO, TI, TO>
+    public class RootNode : GraphNode
     {
-        #region Fields
-
-        /// <summary>
-        /// The agents queued to enter this graph.
-        /// </summary>
-        [DataMember(Name = "ExternalIn")]
-        private List<Agent<JI, JO, TI, TO>> _extInFlow;
-        /// <summary>
-        /// The agents queued to leave this graph.
-        /// </summary>
-        [DataMember(Name = "ExternalOut")]
-        private List<Agent<JI, JO, TI, TO>> _extOutFlow;
-
-        #endregion
-
         #region Properties
 
         /// <summary>
         /// Exit, onto the graph from the head.
         /// </summary>
-        public override GraphNode<JI, JO, TI, TO> Exit
+        public override GraphNode Exit
         {
             get
             {
-                return _neighbors[0];
-            }
-        }
-        /// <summary>
-        /// The number of agents waiting to come in.
-        /// </summary>
-        public int ExInCount
-        {
-            get
-            {
-                return _extInFlow.Count;
-            }
-        }
-        /// <summary>
-        /// The number of agents waiting to leave.
-        /// </summary>
-        public int ExOutCount
-        {
-            get
-            {
-                return _extOutFlow.Count;
+                return Neighbors[0];
             }
         }
         /// <summary>
         /// The agents queued to enter this graph.
         /// </summary>
-        public List<Agent<JI, JO, TI, TO>> ExternalIn
-        {
-            get
-            {
-                return _extInFlow;
-            }
-        }
+        [DataMember]
+        public List<Agent> ExternalIn { get; protected set; }
         /// <summary>
         /// The agents queued to leave this graph.
         /// </summary>
-        public List<Agent<JI, JO, TI, TO>> ExternalOut
-        {
-            get
-            {
-                return _extOutFlow;
-            }
-        }
+        [DataMember]
+        public List<Agent> ExternalOut { get; protected set; }
         /// <summary>
         /// The portal on this node.
         /// </summary>
-        public Portal<JI, JO, TI, TO> Portal
+        public Port Port
         {
             get
             {
-                return (Portal<JI, JO, TI, TO>)_piece;
+                return (Port)Piece;
             }
             set
             {
-                _piece = value;
+                Piece = value;
             }
         }
 
@@ -97,65 +52,56 @@ namespace SwarmNet
         /// </summary>
         public RootNode()
         {
-            _inFlow = new List<Agent<JI, JO, TI, TO>>();
-            _extInFlow = new List<Agent<JI, JO, TI, TO>>();
-            _extOutFlow = new List<Agent<JI, JO, TI, TO>>();
-            _neighbors = new GraphNode<JI, JO, TI, TO>[1];
+            In = new List<Agent>();
+            ExternalIn = new List<Agent>();
+            ExternalOut = new List<Agent>();
+            Neighbors = new GraphNode[1];
             _nextNeighbor = 0;
-            _outFlow = new List<Agent<JI, JO, TI, TO>>();
-            _piece = null;
+            Out = new List<Agent>();
+            Piece = null;
         }
         /// <summary>
         /// Constructs a new head node that contains the provided spawner.
         /// </summary>
         /// <param name="portal">The spawner this node will have.</param>
         /// <param name="neighbors">The max number of neighbors this node can have.</param>
-        public RootNode(Portal<JI, JO, TI, TO> portal)
+        public RootNode(Port portal)
         {
-            _inFlow = new List<Agent<JI, JO, TI, TO>>();
-            _extInFlow = new List<Agent<JI, JO, TI, TO>>();
-            _extOutFlow = new List<Agent<JI, JO, TI, TO>>();
-            _neighbors = new GraphNode<JI, JO, TI, TO>[1];
+            In = new List<Agent>();
+            ExternalIn = new List<Agent>();
+            ExternalOut = new List<Agent>();
+            Neighbors = new GraphNode[1];
             _nextNeighbor = 0;
-            _outFlow = new List<Agent<JI, JO, TI, TO>>();
-            _piece = portal;
+            Out = new List<Agent>();
+            Piece = portal;
             portal.Location = this;
         }
 
         #endregion
 
-        #region Methods
+        #region Methods - Setpiece Operations
 
+        /// <summary>
+        /// Acts as middle man between agent and setpiece.
+        /// </summary>
+        /// <param name="m">The message to pass to the setpiece.</param>
+        /// <returns>The setpiece's reponse.</returns>
+        public Message Communicate(Message m)
+        {
+            return ((Port)Piece).Communicate(m);
+        }
         /// <summary>
         /// Use the portal to spawn a new agent into the out flow.
         /// </summary>
         /// <returns>The agent that was added.</returns>
-        public Agent<JI, JO, TI, TO> Enter()
+        public Agent Enter()
         {
             // Spawn a new agent
-            Agent<JI, JO, TI, TO> a = ((Portal<JI, JO, TI, TO>)_piece).Enter();
+            Agent a = ((Port)Piece).Enter();
             // Add it to the node and sort
-            _extInFlow.Add(a);
-            _extInFlow.Sort();
+            ExternalIn.Add(a);
+            ExternalIn.Sort();
             // Return it for the use by the graph
-            return a;
-        }
-        /// <summary>
-        /// Use the portal to despawn an agent from the in flow.
-        /// </summary>
-        /// <returns>The agent that the node removed.</returns>
-        public Agent<JI, JO, TI, TO> Leave()
-        {
-            // Check if any agents are leaving
-            if (_extOutFlow.Count < 1)
-                return null;
-            // Get first agent leaving
-            Agent<JI, JO, TI, TO> a = _extOutFlow[0];
-            // Remove from queue
-            _extOutFlow.RemoveAt(0);
-            // Despawn the agent
-            ((Portal<JI, JO, TI, TO>)_piece).Leave(a);
-            // Return it for use by the graph
             return a;
         }
         /// <summary>
@@ -163,23 +109,49 @@ namespace SwarmNet
         /// </summary>
         public new void Flush()
         {
-            Agent<JI, JO, TI, TO> a;
+            Agent a;
 
-            while (_inFlow.Count > 0)
+            while (In.Count > 0)
             {
-                a = _inFlow[0];
-                _inFlow.Remove(a);
-                _extOutFlow.Add(a);
+                a = In[0];
+                In.Remove(a);
+                ExternalOut.Add(a);
             }
-            _extOutFlow.Sort();
+            ExternalOut.Sort();
 
-            while (_extInFlow.Count > 0)
+            while (ExternalIn.Count > 0)
             {
-                a = _extInFlow[0];
-                _extInFlow.Remove(a);
-                _outFlow.Add(a);
+                a = ExternalIn[0];
+                ExternalIn.Remove(a);
+                Out.Add(a);
             }
-            _outFlow.Sort();
+            Out.Sort();
+        }
+        /// <summary>
+        /// Start communications with an agent.
+        /// </summary>
+        /// <returns>The first message.</returns>
+        public Message InitComm()
+        {
+            return ((Port)Piece).InitComm();
+        }
+        /// <summary>
+        /// Use the portal to despawn an agent from the in flow.
+        /// </summary>
+        /// <returns>The agent that the node removed.</returns>
+        public Agent Leave()
+        {
+            // Check if any agents are leaving
+            if (ExternalOut.Count < 1)
+                return null;
+            // Get first agent leaving
+            Agent a = ExternalOut[0];
+            // Remove from queue
+            ExternalOut.RemoveAt(0);
+            // Despawn the agent
+            ((Port)Piece).Leave(a);
+            // Return it for use by the graph
+            return a;
         }
 
         #endregion

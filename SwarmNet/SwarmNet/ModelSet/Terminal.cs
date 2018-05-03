@@ -3,21 +3,15 @@
 namespace SwarmNet
 {
     [DataContract(Name = "Terminal", Namespace = "SwarmNet")]
-    public abstract class Terminal<JI, JO, TI, TO> : SetPiece<JI, JO, TI, TO>
+    public abstract class Terminal : SetPiece
     {
-        #region Methods
-
+        #region Properties
+        
         /// <summary>
-        /// Communicate with an agent.
+        /// The current input into this terminal.
         /// </summary>
-        /// <param name="m">The message from the agent.</param>
-        /// <returns>The response from the terminal.</returns>
-        public abstract Message<TO> Communicate(Message<TI> m);
-        /// <summary>
-        /// Initiate communications with an agent.
-        /// </summary>
-        /// <returns>The first message.</returns>
-        public abstract Message<TO> InitComm();
+        [DataMember]
+        public object Input { protected get; set; }
 
         #endregion
     }

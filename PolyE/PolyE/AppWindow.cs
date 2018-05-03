@@ -9,17 +9,30 @@ namespace PolyE
     public partial class AppWindow : Form
     {
         private PolyEModel _model;
+        private Timer _repeat;
 
         public AppWindow()
         {
             InitializeComponent();
 
-            _model = new PolyEModel(20, 5, 1, 40);
+            _model = new PolyEModel(100, 8, 2, 60);
             branchesText.Text = _model.BranchesString();
             leavesText.Text = _model.LeavesString();
             agentsText.Text = _model.AgentsString();
 
+            _repeat = new Timer();
+            _repeat.Interval = 100;
+            _repeat.Tick += _repeat_Tick;
+
             SaveModel(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "/model.xml");
+        }
+
+        private void _repeat_Tick(object sender, EventArgs e)
+        {
+            _model.Tick();
+            branchesText.Text = _model.BranchesString();
+            leavesText.Text = _model.LeavesString();
+            agentsText.Text = _model.AgentsString();
         }
 
         private void SaveModel(string path)
@@ -47,10 +60,10 @@ namespace PolyE
 
         private void runButton_Click(object sender, EventArgs e)
         {
-            _model.Tick();
-            branchesText.Text = _model.BranchesString();
-            leavesText.Text = _model.LeavesString();
-            agentsText.Text = _model.AgentsString();
+            if (_repeat.Enabled)
+                _repeat.Stop();
+            else
+                _repeat.Start();
         }
     }
 }

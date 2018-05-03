@@ -6,7 +6,7 @@ using SwarmNet;
 namespace PolyE
 {
     [DataContract(Name = "Generator", Namespace = "PolyE")]
-    public class ExprGenerator : Portal<int, int, string, Tuple<int, int, AlgOp>>
+    public class ExprGenerator : Port
     {
         #region Globals
 
@@ -108,18 +108,40 @@ namespace PolyE
         /// <returns>The string representation of this spawner.</returns>
         public override string ToString()
         {
-            return string.Format("ExprGenerator: Next: {0} Coeffs: [{1}, {2}) Degrees: {3}", _nextID, _coeffMin, _coeffMax, _degree);
+            return string.Format("Next: {0} Coeffs: [{1}, {2}) Degrees: {3}", _nextID, _coeffMin, _coeffMax, _degree);
         }
 
         #endregion
 
-        #region Methods - Spawner Operations
+        #region Methods - Communication
+
+        /// <summary>
+        /// Communication between an Agent and Port is unnecessary so a null terminator is sent.
+        /// </summary>
+        /// <param name="m">The incoming message.</param>
+        /// <returns>Null terminating message.</returns>
+        public override Message Communicate(Message m)
+        {
+            return new Message(null, CommType.TERM);
+        }
+        /// <summary>
+        /// Communication between an agent and Port is unnecessary so a null initializer is sent.
+        /// </summary>
+        /// <returns>Null initializing message.</returns>
+        public override Message InitComm()
+        {
+            return new Message(null, CommType.INIT);
+        }
+
+        #endregion
+
+        #region Methods - Port Operations
 
         /// <summary>
         /// Takes an old expression off the queue or creates a new one, and then releases it to the graph.
         /// </summary>
         /// <returns>The agent that will be used for the graph.</returns>
-        public override Agent<int, int, string, Tuple<int, int, AlgOp>> Enter()
+        public override Agent Enter()
         {
             Expression a;
 
@@ -146,7 +168,7 @@ namespace PolyE
         /// Stores an old agent for later use on the queue.
         /// </summary>
         /// <param name="a">The agent to store.</param>
-        public override void Leave(Agent<int, int, string, Tuple<int, int, AlgOp>> a)
+        public override void Leave(Agent a)
         {
             _queue.Add((Expression)a);
         }

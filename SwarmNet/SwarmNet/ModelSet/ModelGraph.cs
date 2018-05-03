@@ -6,95 +6,51 @@ using System.Runtime.Serialization;
 namespace SwarmNet
 {
     [DataContract(Name = "Graph", Namespace = "SwarmNet")]
-    public class ModelGraph<JI, JO, TI, TO>
+    public class ModelGraph
     {
-        #region Fields
-
-        /// <summary>
-        /// The agents on the graph.
-        /// </summary>
-        [DataMember(Name = "Agents", Order = 1)]
-        private List<Agent<JI, JO, TI, TO>> _agents;
-        /// <summary>
-        /// The branch nodes of the graph.
-        /// </summary>
-        [DataMember(Name = "Branches", Order = 3)]
-        private BranchNode<JI, JO, TI, TO>[] _branches;
-        /// <summary>
-        /// The leaf nodes of the graph.
-        /// </summary>
-        [DataMember(Name = "Leaves", Order = 4)]
-        private LeafNode<JI, JO, TI, TO>[] _leaves;
-        /// <summary>
-        /// The head node of the graph.
-        /// </summary>
-        [DataMember(Name = "Roots", Order = 2)]
-        private RootNode<JI, JO, TI, TO>[] _roots;
-        /// <summary>
-        /// The number of nodes in each tier.
-        /// </summary>
-        [DataMember(Name = "TierCount")]
-        private int[] _tiers;
-
-        #endregion
-
         #region Properties
 
         /// <summary>
         /// The agents of the graph.
         /// </summary>
-        public Agent<JI, JO, TI, TO>[] Agents
-        {
-            get
-            {
-                return _agents.ToArray();
-            }
-        }
+        [DataMember]
+        public List<Agent> Agents { get; protected set; }
         /// <summary>
         /// The branches of the graph.
         /// </summary>
-        public BranchNode<JI, JO, TI, TO>[] Branches
-        {
-            get
-            {
-                return _branches;
-            }
-        }
+        [DataMember]
+        public List<BranchNode> Branches { get; protected set; }
         /// <summary>
         /// The leaves of the graph.
         /// </summary>
-        public LeafNode<JI, JO, TI, TO>[] Leaves
-        {
-            get
-            {
-                return _leaves;
-            }
-        }
+        [DataMember]
+        public List<LeafNode> Leaves { get; protected set; }
         /// <summary>
-        /// The head of the graph.
+        /// The roots of the graph.
         /// </summary>
-        public RootNode<JI, JO, TI, TO>[] Roots
-        {
-            get
-            {
-                return _roots;
-            }
-        }
+        [DataMember]
+        public List<RootNode> Roots { get; protected set; }
         /// <summary>
-        /// The number of tiers there are in the graph.
+        /// The number of nodes in each tier of a circular layout of the graph.
         /// </summary>
-        public int TiersCount
-        {
-            get
-            {
-                return _tiers.Length;
-            }
-        }
+        [DataMember]
+        public List<int> TierCounts { get; protected set; }
 
         #endregion
 
         #region Constructors
         
+        /// <summary>
+        /// Base graph constructor.
+        /// </summary>
+        public ModelGraph()
+        {
+            Agents = new List<Agent>();
+            Branches = new List<BranchNode>();
+            Leaves = new List<LeafNode>();
+            Roots = new List<RootNode>();
+            TierCounts = new List<int>();
+        }
         /// <summary>
         /// Constructs a new tree.
         /// </summary>
@@ -105,7 +61,7 @@ namespace SwarmNet
         /// <param name="l">The chance a node will be a leaf.</param>
         public ModelGraph(Random r, int n, int m, int o, int l)
         {
-            _agents = new List<Agent<JI, JO, TI, TO>>();
+            Agents = new List<Agent>();
             GenTree(r, n, m, o, l);
         }
         /// <summary>
@@ -119,9 +75,9 @@ namespace SwarmNet
         /// <param name="p">The method of creating portals.</param>
         /// <param name="j">The method of creating junctions.</param>
         /// <param name="t">The method of creating terminals.</param>
-        public ModelGraph(Random r, int n, int m, int o, int l, Func<Portal<JI, JO, TI, TO>> p, Func<int, Junction<JI, JO, TI, TO>> j, Func<Terminal<JI, JO, TI, TO>> t)
+        public ModelGraph(Random r, int n, int m, int o, int l, Func<Port> p, Func<int, Junction> j, Func<Terminal> t)
         {
-            _agents = new List<Agent<JI, JO, TI, TO>>();
+            Agents = new List<Agent>();
             GenTree(r, n, m, o, l);
             BuildSet(p, j, t);
         }
@@ -129,7 +85,60 @@ namespace SwarmNet
         #endregion
 
         #region Methods - Graph Operations
-        
+
+        /// <summary>
+        /// Converts a tree styled rigging graph to a model graph.
+        /// </summary>
+        /// <param name="rig">The rigging graph to conver.</param>
+        /// <param name="port">Method for generating portals.</param>
+        /// <param name="junc">Method for generating junctions.</param>
+        /// <param name="term">Method for generating terminals.</param>
+        public void BuildSet(Func<Port> port, Func<int, Junction> junc, Func<Terminal> term)
+        {
+            List<GraphNode> current_model, next_model = Roots.ToList<GraphNode>();
+            GraphNode model_node;
+            bool isHead = true;
+
+            do
+            {
+                // Switch next to current, and get new next
+                current_model = next_model;
+                next_model = new List<GraphNode>();
+
+                // Got through each node of current
+                for (int i = 0; i < current_model.Count; i++)
+                {
+                    // Get current node
+                    model_node = current_model[i];
+
+                    // Build set piece on node and add un-built children to next tier
+                    if (isHead)
+                    {
+                        ((RootNode)model_node).Port = port();
+                        if (model_node.Neighbors[0].Piece == null)
+                            next_model.Add(model_node.Neighbors[0]);
+                    }
+                    else
+                    {
+                        if (model_node.Neighbors.Length > 1)
+                        {
+                            ((BranchNode)model_node).Junction = junc(model_node.Neighbors.Length);
+                            for (int j = 0; j < model_node.Neighbors.Length; j++)
+                            {
+                                if (model_node.Neighbors[j].Piece == null)
+                                    next_model.Add(model_node.Neighbors[j]);
+                            }
+                        }
+                        else
+                            ((LeafNode)model_node).Terminal = term();
+                    }
+                }
+
+                // Flip bool for speach head case
+                if (isHead)
+                    isHead = false;
+            } while (next_model.Count > 0);
+        }
         /// <summary>
         /// Generate a new graph for this object.
         /// </summary>
@@ -140,18 +149,18 @@ namespace SwarmNet
         public void GenTree(Random rand, int total_remain, int max_children, int offset, int leaf_chance)
         {
             int n_kids_tot, c_kids_tot, n_kids_max, n_kids_min, kids_remain, avg_kpn, real_kpn, tier, tier_index, min;
-            GraphNode<JI, JO, TI, TO>[] cur_tier;
-            List<GraphNode<JI, JO, TI, TO>> next_tier;
-            RootNode<JI, JO, TI, TO> root;
-            List<BranchNode<JI, JO, TI, TO>> branches;
-            List<LeafNode<JI, JO, TI, TO>> leaves;
-            GraphNode<JI, JO, TI, TO> current;
+            GraphNode[] cur_tier;
+            List<GraphNode> next_tier;
+            RootNode root;
+            List<BranchNode> branches;
+            List<LeafNode> leaves;
+            GraphNode current;
             List<int> tiers;
             bool isRoot;
 
             // Initialize branches and leaves;
-            branches = new List<BranchNode<JI, JO, TI, TO>>();
-            leaves = new List<LeafNode<JI, JO, TI, TO>>();
+            branches = new List<BranchNode>();
+            leaves = new List<LeafNode>();
             tiers = new List<int>();
             // Initialize the positioning variables
             tier = 0;
@@ -161,12 +170,12 @@ namespace SwarmNet
             // Subtract the head and it's neighbor from the remaining total
             total_remain -= n_kids_tot + 1;
             // Initialize the head
-            root = new RootNode<JI, JO, TI, TO>();
-            root.Tier = tier;
-            root.TierIndex = tier_index;
+            root = new RootNode();
+            root.RadiusIndex = tier;
+            root.AngularIndex = tier_index;
             tier_index++;
             // Insert head as only node of next tier of nodes to work on
-            next_tier = new List<GraphNode<JI, JO, TI, TO>>() { root };
+            next_tier = new List<GraphNode>() { root };
             // set first tier bool
             isRoot = true;
 
@@ -174,7 +183,7 @@ namespace SwarmNet
             {
                 // Set next tier as current tier and get new next tier
                 cur_tier = next_tier.ToArray();
-                next_tier = new List<GraphNode<JI, JO, TI, TO>>();
+                next_tier = new List<GraphNode>();
                 tier++;
                 tiers.Add(tier_index);
                 tier_index = 0;
@@ -205,7 +214,7 @@ namespace SwarmNet
                 for (int i = 0; i < cur_tier.Length; i++)
                 {
                     // For each child of this node
-                    for (int j = isRoot ? 0 : 1; j < cur_tier[i].Length; j++)
+                    for (int j = isRoot ? 0 : 1; j < cur_tier[i].Neighbors.Length; j++)
                     {
                         // If the average is greater than what remains to be generated, then clamp to later
                         if (kids_remain < avg_kpn)
@@ -232,18 +241,18 @@ namespace SwarmNet
                         // Generate a node with the calculated number of children
                         if (real_kpn == 0)
                         {
-                            current = new LeafNode<JI, JO, TI, TO>();
-                            leaves.Add((LeafNode<JI, JO, TI, TO>)current);
+                            current = new LeafNode();
+                            leaves.Add((LeafNode)current);
                         }
                         else
                         {
-                            current = new BranchNode<JI, JO, TI, TO>(real_kpn + 1);
-                            branches.Add((BranchNode<JI, JO, TI, TO>)current);
+                            current = new BranchNode(real_kpn + 1);
+                            branches.Add((BranchNode)current);
                             next_tier.Add(current);
                         }
                         // Position current node
-                        current.Tier = tier;
-                        current.TierIndex = tier_index;
+                        current.RadiusIndex = tier;
+                        current.AngularIndex = tier_index;
                         tier_index++;
                         // Add node to graph
                         cur_tier[i].AddNeighbor(current);
@@ -257,63 +266,10 @@ namespace SwarmNet
             }
 
             // Set all the finalized values
-            _roots = new RootNode<JI, JO, TI, TO>[] { root };
-            _branches = branches.ToArray();
-            _leaves = leaves.ToArray();
-            _tiers = tiers.ToArray();
-        }
-        /// <summary>
-        /// Converts a tree styled rigging graph to a model graph.
-        /// </summary>
-        /// <param name="rig">The rigging graph to conver.</param>
-        /// <param name="port">Method for generating portals.</param>
-        /// <param name="junc">Method for generating junctions.</param>
-        /// <param name="term">Method for generating terminals.</param>
-        public void BuildSet(Func<Portal<JI, JO, TI, TO>> port, Func<int, Junction<JI, JO, TI, TO>> junc, Func<Terminal<JI, JO, TI, TO>> term)
-        {
-            List<GraphNode<JI, JO, TI, TO>> current_model, next_model = _roots.ToList<GraphNode<JI, JO, TI, TO>>();
-            GraphNode<JI, JO, TI, TO> model_node;
-            bool isHead = true;
-
-            do
-            {
-                // Switch next to current, and get new next
-                current_model = next_model;
-                next_model = new List<GraphNode<JI, JO, TI, TO>>();
-
-                // Got through each node of current
-                for (int i = 0; i < current_model.Count; i++)
-                {
-                    // Get current node
-                    model_node = current_model[i];
-
-                    // Build set piece on node and add un-built children to next tier
-                    if (isHead)
-                    {
-                        ((RootNode<JI, JO, TI, TO>)model_node).Portal = port();
-                        if (model_node[0].Piece == null)
-                            next_model.Add(model_node[0]);
-                    }
-                    else
-                    {
-                        if (model_node.Length > 1)
-                        {
-                            ((BranchNode<JI, JO, TI, TO>)model_node).Junction = junc(model_node.Length);
-                            for (int j = 0; j < model_node.Length; j++)
-                            {
-                                if (model_node[j].Piece == null)
-                                    next_model.Add(model_node[j]);
-                            }
-                        }
-                        else
-                            ((LeafNode<JI, JO, TI, TO>)model_node).Terminal = term();
-                    }
-                }
-
-                // Flip bool for speach head case
-                if (isHead)
-                    isHead = false;
-            } while (next_model.Count > 0);
+            Roots = new List<RootNode> { root };
+            Branches = branches;
+            Leaves = leaves;
+            TierCounts = tiers;
         }
 
         #endregion
@@ -325,63 +281,77 @@ namespace SwarmNet
         /// </summary>
         public void Enter(int index)
         {
-            if (index < 0 || index >= _roots.Length)
+            if (index < 0 || index >= Roots.Count)
                 return;
 
-            _agents.Add(_roots[index].Enter());
+            Agents.Add(Roots[index].Enter());
         }
         /// <summary>
         /// Remove an agent from the graph.
         /// </summary>
         public void Leave(int index)
         {
-            if (index < 0 || index >= _roots.Length)
+            RootNode root;
+            Agent a;
+            Message m;
+
+            if (index < 0 || index >= Roots.Count)
                 return;
 
-            _agents.Remove(_roots[index].Leave());
+            // Get the agent that is leaving
+            root = Roots[index];
+            a = root.Leave();
+            m = root.InitComm();
+
+            // Communicate until the node quits
+            do
+            {
+                m = root.Communicate(a.CommPort(m));
+            } while (m.Type != CommType.TERM);
+
+            Agents.Remove(a);
         }
         /// <summary>
         /// Moves the simulation of the model along by one generic time unit.
         /// </summary>
         public void Tick()
         {
-            Agent<JI, JO, TI, TO> a;
-            Message<JO> jO;
-            Message<TO> tO;
+            Agent a;
+            Message m;
 
-            for (int r = 0; r < _roots.Length; r++)
+            for (int r = 0; r < Roots.Count; r++)
             {
                 // If the head is not connected, then throw an exception
-                if (_roots[r].Exit == null)
+                if (Roots[r].Exit == null)
                     throw new InvalidOperationException("Entrance to graph not connected.");
 
                 // Exit graph through portal
-                while (_roots[r].ExOutCount > 0)
+                while (Roots[r].ExternalOut.Count > 0)
                 {
                     Leave(r);
                 }
                 // Enter the graph
-                while (_roots[r].OutCount > 0)
+                while (Roots[r].Out.Count > 0)
                 {
-                    _roots[r].Exit.Enqueue(_roots[r].Dequeue());
+                    Roots[r].Exit.Enqueue(Roots[r].Dequeue());
                 }
             }
 
             // Perform interactions for all the branch nodes
-            foreach (BranchNode<JI, JO, TI, TO> branch in _branches)
+            foreach (BranchNode branch in Branches)
             {
                 // For every agent on the node...
-                while (branch.OutCount > 0)
+                while (branch.Out.Count > 0)
                 {
                     // Get next agent and start communications
                     a = branch.Dequeue();
-                    jO = branch.InitComm();
+                    m = branch.InitComm();
 
                     // Communicate until the node quits
                     do
                     {
-                        jO = branch.Communicate(a.CommJunc(jO));
-                    } while (jO.Type != CommType.FINISH);
+                        m = branch.Communicate(a.CommJunc(m));
+                    } while (m.Type != CommType.TERM);
 
                     // Throw an exception if the agent can't leave
                     if (branch.Exit == null)
@@ -393,20 +363,20 @@ namespace SwarmNet
             }
 
             // Perform interactions for all the leaf nodes
-            foreach (LeafNode<JI, JO, TI, TO> leaf in _leaves)
+            foreach (LeafNode leaf in Leaves)
             {
                 // For every agent on the node...
-                while (leaf.OutCount > 0)
+                while (leaf.Out.Count > 0)
                 {
                     // Get next agent and start communications
                     a = leaf.Dequeue();
-                    tO = leaf.InitComm();
+                    m = leaf.InitComm();
 
                     // Communicate until the node quits
                     do
                     {
-                        tO = leaf.Communicate(a.CommTerm(tO));
-                    } while (tO.Type != CommType.FINISH);
+                        m = leaf.Communicate(a.CommTerm(m));
+                    } while (m.Type != CommType.TERM);
 
                     // Throw an exception if the agent can't leave
                     if (leaf.Exit == null)
@@ -418,15 +388,15 @@ namespace SwarmNet
             }
 
             // Move all agents into their respective nodes
-            foreach (RootNode<JI, JO, TI, TO> root in _roots)
+            foreach (RootNode root in Roots)
             {
                 root.Flush();
             }
-            foreach (BranchNode<JI, JO, TI, TO> branch in _branches)
+            foreach (BranchNode branch in Branches)
             {
                 branch.Flush();
             }
-            foreach (LeafNode<JI, JO, TI, TO> leaf in _leaves)
+            foreach (LeafNode leaf in Leaves)
             {
                 leaf.Flush();
             }
@@ -437,51 +407,50 @@ namespace SwarmNet
         /// <returns>Whether or not a tick has passed.</returns>
         public bool SemiTick()
         {
-            Agent<JI, JO, TI, TO> a;
-            Message<JO> jO;
-            Message<TO> tO;
+            Agent a;
+            Message m;
             bool doneTick = true;
 
-            for (int r = 0; r < _roots.Length; r++)
+            for (int r = 0; r < Roots.Count; r++)
             {
                 // If the head is not connected, then throw an exception
-                if (_roots[r].Exit == null)
+                if (Roots[r].Exit == null)
                     throw new InvalidOperationException("Entrance to graph not connected.");
 
                 // Exit graph through portal
-                if (_roots[r].ExOutCount > 0)
+                if (Roots[r].ExternalOut.Count > 0)
                 {
                     Leave(r);
                     // If this wasn't the last action for this step, then the tick isn't done
-                    if (_roots[r].ExOutCount > 0)
+                    if (Roots[r].ExternalOut.Count > 0)
                         doneTick = false;
                 }
                 // Enter the graph
-                if (_roots[r].OutCount > 0)
+                if (Roots[r].Out.Count > 0)
                 {
-                    _roots[r].Exit.Enqueue(_roots[r].Dequeue());
+                    Roots[r].Exit.Enqueue(Roots[r].Dequeue());
                     // If this wasn't the last action for this step, then the tick isn't done
-                    if (_roots[r].OutCount > 0)
+                    if (Roots[r].Out.Count > 0)
                         doneTick = false;
                 }
             }
 
             // Perform interactions for all the branch nodes
-            foreach (BranchNode<JI, JO, TI, TO> branch in _branches)
+            foreach (BranchNode branch in Branches)
             {
                 // If there are no agents, then continue
-                if (branch.OutCount < 1)
+                if (branch.Out.Count < 1)
                     continue;
 
                 // Get next agent and start communications
                 a = branch.Dequeue();
-                jO = branch.InitComm();
+                m = branch.InitComm();
 
                 // Communicate until the node quits
                 do
                 {
-                    jO = branch.Communicate(a.CommJunc(jO));
-                } while (jO.Type != CommType.FINISH);
+                    m = branch.Communicate(a.CommJunc(m));
+                } while (m.Type != CommType.TERM);
 
                 // Throw an exception if the agent can't leave
                 if (branch.Exit == null)
@@ -491,26 +460,26 @@ namespace SwarmNet
                 branch.Exit.Enqueue(a);
 
                 // If this wasn't the last action for this step, then the tick isn't done
-                if (branch.OutCount > 0)
+                if (branch.Out.Count > 0)
                     doneTick = false;
             }
 
             // Perform interactions for all the branch nodes
-            foreach (LeafNode<JI, JO, TI, TO> leaf in _leaves)
+            foreach (LeafNode leaf in Leaves)
             {
                 // If there are no agents, then continue
-                if (leaf.OutCount < 1)
+                if (leaf.Out.Count < 1)
                     continue;
 
                 // Get next agent and start communications
                 a = leaf.Dequeue();
-                tO = leaf.InitComm();
+                m = leaf.InitComm();
 
                 // Communicate until the node quits
                 do
                 {
-                    tO = leaf.Communicate(a.CommTerm(tO));
-                } while (tO.Type != CommType.FINISH);
+                    m = leaf.Communicate(a.CommTerm(m));
+                } while (m.Type != CommType.TERM);
 
                 // Throw an exception if the agent can't leave
                 if (leaf.Exit == null)
@@ -520,7 +489,7 @@ namespace SwarmNet
                 leaf.Exit.Enqueue(a);
 
                 // If this wasn't the last action for this step, then the tick isn't done
-                if (leaf.OutCount > 0)
+                if (leaf.Out.Count > 0)
                     doneTick = false;
             }
 
@@ -528,38 +497,21 @@ namespace SwarmNet
             if (doneTick)
             {
                 // Move all agents into their respective nodes
-                foreach (RootNode<JI, JO, TI, TO> root in _roots)
+                foreach (RootNode root in Roots)
                 {
                     root.Flush();
                 }
-                foreach (BranchNode<JI, JO, TI, TO> branch in _branches)
+                foreach (BranchNode branch in Branches)
                 {
                     branch.Flush();
                 }
-                foreach (LeafNode<JI, JO, TI, TO> leaf in _leaves)
+                foreach (LeafNode leaf in Leaves)
                 {
                     leaf.Flush();
                 }
             }
 
             return doneTick;
-        }
-
-        #endregion
-
-        #region Methods - Logistics
-
-        /// <summary>
-        /// The number of nodes in a tier.
-        /// </summary>
-        /// <param name="index">The tier to get the number of nodes from.</param>
-        /// <returns>The number of nodes in the requested tier.</returns>
-        public int TierCount(int index)
-        {
-            if (index < 0 || index > _tiers.Length)
-                throw new ArgumentException("Index out of range.");
-
-            return _tiers[index];
         }
 
         #endregion

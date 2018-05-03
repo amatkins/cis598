@@ -6,74 +6,34 @@ namespace SwarmNet
 {
     [DataContract(IsReference = true, Name = "Node", Namespace = "SwarmNet")]
     [KnownType("GetKnownTypes")]
-    public abstract class GraphNode<JI, JO, TI, TO>
+    public abstract class GraphNode
     {
         #region Fields
-
-        /// <summary>
-        /// The agents queued to enter this node.
-        /// </summary>
-        [DataMember(Name = "In")]
-        protected List<Agent<JI, JO, TI, TO>> _inFlow;
-        /// <summary>
-        /// The other nodes connected to this one.
-        /// </summary>
-        [DataMember(Name = "Neighbors")]
-        protected GraphNode<JI, JO, TI, TO>[] _neighbors;
+        
         /// <summary>
         /// The next available space for a neighbor node.
         /// </summary>
-        [DataMember(Name = "NextNeighbor")]
+        [DataMember]
         protected int _nextNeighbor;
-        /// <summary>
-        /// The agents queued to leave this node.
-        /// </summary>
-        [DataMember(Name = "Out")]
-        protected List<Agent<JI, JO, TI, TO>> _outFlow;
-        /// <summary>
-        /// The set piece that is on this node.
-        /// </summary>
-        [DataMember(Name = "SetPiece")]
-        protected SetPiece<JI, JO, TI, TO> _piece;
-        /// <summary>
-        /// The tier of the graph that this node resides on.
-        /// </summary>
-        [DataMember(Name = "Tier")]
-        protected int _tier;
-        /// <summary>
-        /// The index on the tier that this node resides on.
-        /// </summary>
-        [DataMember(Name = "TierIndex")]
-        protected int _tierIndex;
 
         #endregion
 
         #region Properties
 
         /// <summary>
+        /// The angular index of a given radius in a circular layout.
+        /// </summary>
+        [DataMember]
+        public int? AngularIndex { get; set; }
+        /// <summary>
         /// The neighbor that leaving agents will go to.
         /// </summary>
-        public abstract GraphNode<JI, JO, TI, TO> Exit { get; }
+        public abstract GraphNode Exit { get; }
         /// <summary>
         /// The in flow into this node.
         /// </summary>
-        public List<Agent<JI, JO, TI, TO>> In
-        {
-            get
-            {
-                return _inFlow;
-            }
-        }
-        /// <summary>
-        /// The numner of agents in the in flow.
-        /// </summary>
-        public int InCount
-        {
-            get
-            {
-                return _inFlow.Count;
-            }
-        }
+        [DataMember]
+        public List<Agent> In { get; protected set; }
         /// <summary>
         /// Whether or not there all neighbor spaces are occupied.
         /// </summary>
@@ -85,88 +45,37 @@ namespace SwarmNet
             }
         }
         /// <summary>
-        /// The number of neighbors this node can have.
-        /// </summary>
-        public int Length
-        {
-            get
-            {
-                return _neighbors.Length;
-            }
-        }
-        /// <summary>
-        /// The out flow from this node.
-        /// </summary>
-        public List<Agent<JI, JO, TI, TO>> Out
-        {
-            get
-            {
-                return _outFlow;
-            }
-        }
-        /// <summary>
-        /// The number of agents in the out flow.
-        /// </summary>
-        public int OutCount
-        {
-            get
-            {
-                return _outFlow.Count;
-            }
-        }
-        /// <summary>
-        /// The set piece on this node.
-        /// </summary>
-        public SetPiece<JI, JO, TI, TO> Piece
-        {
-            get
-            {
-                return _piece;
-            }
-        }
-        /// <summary>
         /// Access the neighbors of this node.
         /// </summary>
         /// <param name="index">Index into the array of neighbors.</param>
         /// <returns>A node if it exists, otherwise null.</returns>
-        public GraphNode<JI, JO, TI, TO> this[int index]
-        {
-            get
-            {
-                if (index > -1 && index < _neighbors.Length)
-                    return _neighbors[index];
-                else
-                    return null;
-            }
-        }
+        [DataMember]
+        public GraphNode[] Neighbors { get; protected set; }
         /// <summary>
-        /// The tier of the graph that this node occupies.
+        /// The out flow from this node.
         /// </summary>
-        public int Tier
-        {
-            get
-            {
-                return _tier;
-            }
-            set
-            {
-                _tier = Math.Abs(value);
-            }
-        }
+        [DataMember]
+        public List<Agent> Out { get; protected set; }
         /// <summary>
-        /// The index into the tier that this node occupies.
+        /// The set piece on this node.
         /// </summary>
-        public int TierIndex
-        {
-            get
-            {
-                return _tierIndex;
-            }
-            set
-            {
-                _tierIndex = Math.Abs(value);
-            }
-        }
+        [DataMember]
+        public SetPiece Piece { get; set; }
+        /// <summary>
+        /// The radius from the the center of a circular layout.
+        /// </summary>
+        [DataMember]
+        public int? RadiusIndex { get; set; }
+        /// <summary>
+        /// The x index of a grid layout.
+        /// </summary>
+        [DataMember]
+        public int? X { get; set; }
+        /// <summary>
+        /// The y index of a grid layout.
+        /// </summary>
+        [DataMember]
+        public int? Y { get; set; }
 
         #endregion
 
@@ -176,26 +85,57 @@ namespace SwarmNet
         /// Add a new neighbor to this node if possible.
         /// </summary>
         /// <param name="neighbor">The neighbor to add.</param>
-        public void AddNeighbor(GraphNode<JI, JO, TI, TO> neighbor)
+        public void AddNeighbor(GraphNode neighbor)
         {
             if (neighbor == null)
                 throw new ArgumentException("Neighbor cannot be null, try RemoveNeighbor instead.");
 
             if (_nextNeighbor < 0)
-                throw new InvalidOperationException("This noce can no longer accept neighbors.");
+                throw new InvalidOperationException("This node can no longer accept neighbors.");
 
             if (neighbor._nextNeighbor < 0)
                 throw new ArgumentException("The neighbor node can no longer accept neighbors.");
 
             // Add the neighbor to the first available space in this node
-            _neighbors[_nextNeighbor] = neighbor;
+            Neighbors[_nextNeighbor] = neighbor;
             // Move to next available space
-            _nextNeighbor = Array.IndexOf(_neighbors, null);
+            _nextNeighbor = Array.IndexOf(Neighbors, null);
 
             // Add this node to the first available space in the neighbor
-            neighbor._neighbors[neighbor._nextNeighbor] = this;
+            neighbor.Neighbors[neighbor._nextNeighbor] = this;
             // Move to next available space
-            neighbor._nextNeighbor = Array.IndexOf(neighbor._neighbors, null);
+            neighbor._nextNeighbor = Array.IndexOf(neighbor.Neighbors, null);
+        }
+        /// <summary>
+        /// Attempts to remove the neighbor at the given index.
+        /// </summary>
+        /// <param name="index">The neighbor to remove.</param>
+        /// <returns>What was present in that position.</returns>
+        public GraphNode RemoveNeighbor(int index)
+        {
+            if (index < 0 || index >= Neighbors.Length)
+                throw new ArgumentException("Inavlid index into neighbor array.");
+
+            // Return if there is nothing to remove
+            if (Neighbors[index] == null)
+                return null;
+
+            GraphNode neighbor;
+            int thindex;
+
+            // Get neighbore and this index into neighbor's neighbor array
+            neighbor = Neighbors[index];
+            thindex = Array.IndexOf(neighbor.Neighbors, this);
+
+            // Remove neighbor from this
+            Neighbors[index] = null;
+            _nextNeighbor = index;
+
+            // Remove this from neighbor
+            neighbor.Neighbors[thindex] = null;
+            neighbor._nextNeighbor = thindex;
+
+            return neighbor;
         }
         /// <summary>
         /// Replace a position in the neighbor array with a new neighbor.
@@ -203,7 +143,7 @@ namespace SwarmNet
         /// <param name="neighbor">The node to add.</param>
         /// <param name="index">The place to add the new node.</param>
         /// <returns>What used to be at that position in the neighbor array.</returns>
-        public GraphNode<JI, JO, TI, TO> SwapNeighbor(GraphNode<JI, JO, TI, TO> neighbor, int index)
+        public GraphNode SwapNeighbor(GraphNode neighbor, int index)
         {
             if (neighbor == null)
                 throw new ArgumentException("Neighbor cannot be null, try RemoveNeighbor instead.");
@@ -211,65 +151,34 @@ namespace SwarmNet
             if (neighbor._nextNeighbor < 0)
                 throw new ArgumentException("The neighbor node can no longer accept neighbors.");
 
-            if (index < 0 || index >= _neighbors.Length)
+            if (index < 0 || index >= Neighbors.Length)
                 throw new ArgumentException("Inavlid index into neighbor array.");
 
-            GraphNode<JI, JO, TI, TO> old_Neighbor;
+            GraphNode old_Neighbor;
             int thindex;
 
             // Get neighbore and this index into neighbor's neighbor array
-            old_Neighbor = _neighbors[index];
+            old_Neighbor = Neighbors[index];
 
             if (old_Neighbor != null)
             {
                 // Get this node's position in old neighbor's neighbor array
-                thindex = Array.IndexOf(old_Neighbor._neighbors, this);
+                thindex = Array.IndexOf(old_Neighbor.Neighbors, this);
 
                 // Remove this node from old neighbor
-                old_Neighbor._neighbors[thindex] = null;
+                old_Neighbor.Neighbors[thindex] = null;
                 old_Neighbor._nextNeighbor = thindex;
             }
 
             // Put the new neighbor in the provided position
-            _neighbors[index] = neighbor;
+            Neighbors[index] = neighbor;
 
             // Add this node to the new neighbor
-            neighbor._neighbors[neighbor._nextNeighbor] = this;
-            neighbor._nextNeighbor = Array.IndexOf(neighbor._neighbors, null);
+            neighbor.Neighbors[neighbor._nextNeighbor] = this;
+            neighbor._nextNeighbor = Array.IndexOf(neighbor.Neighbors, null);
 
             // Return what used to be in the position
             return old_Neighbor;
-        }
-        /// <summary>
-        /// Attempts to remove the neighbor at the given index.
-        /// </summary>
-        /// <param name="index">The neighbor to remove.</param>
-        /// <returns>What was present in that position.</returns>
-        public GraphNode<JI, JO, TI, TO> RemoveNeighbor(int index)
-        {
-            if (index < 0 || index >= _neighbors.Length)
-                throw new ArgumentException("Inavlid index into neighbor array.");
-
-            // Return if there is nothing to remove
-            if (_neighbors[index] == null)
-                return null;
-
-            GraphNode<JI, JO, TI, TO> neighbor;
-            int thindex;
-
-            // Get neighbore and this index into neighbor's neighbor array
-            neighbor = _neighbors[index];
-            thindex = Array.IndexOf(neighbor._neighbors, this);
-
-            // Remove neighbor from this
-            _neighbors[index] = null;
-            _nextNeighbor = index;
-
-            // Remove this from neighbor
-            neighbor._neighbors[thindex] = null;
-            neighbor._nextNeighbor = thindex;
-
-            return neighbor;
         }
 
         #endregion
@@ -280,15 +189,15 @@ namespace SwarmNet
         /// Gets the first agent 
         /// </summary>
         /// <returns></returns>
-        public Agent<JI, JO, TI, TO> Dequeue()
+        public Agent Dequeue()
         {
-            if (_outFlow.Count < 1)
+            if (Out.Count < 1)
                 return null;
 
             // Get the first agent
-            Agent<JI, JO, TI, TO> a = _outFlow[0];
+            Agent a = Out[0];
             // Remove from the population
-            _outFlow.RemoveAt(0);
+            Out.RemoveAt(0);
             // Return the agent
             return a;
         }
@@ -296,25 +205,25 @@ namespace SwarmNet
         /// Adds an agent to the population and sorts based on priority.
         /// </summary>
         /// <param name="a">The agent to add.</param>
-        public void Enqueue(Agent<JI, JO, TI, TO> a)
+        public void Enqueue(Agent a)
         {
-            _inFlow.Add(a);
-            _inFlow.Sort();
+            In.Add(a);
+            In.Sort();
         }
         /// <summary>
         /// Flushes the inflow to the outflow and sorts the queue.
         /// </summary>
         public void Flush()
         {
-            Agent<JI, JO, TI, TO> a;
+            Agent a;
 
-            while(_inFlow.Count > 0)
+            while(In.Count > 0)
             {
-                a = _inFlow[0];
-                _inFlow.Remove(a);
-                _outFlow.Add(a);
+                a = In[0];
+                In.Remove(a);
+                Out.Add(a);
             }
-            _outFlow.Sort();
+            Out.Sort();
         }
 
         #endregion
@@ -329,9 +238,9 @@ namespace SwarmNet
         {
             List<Type> types = new List<Type>();
 
-            types.Add(typeof(RootNode<JI, JO, TI, TO>));
-            types.Add(typeof(BranchNode<JI, JO, TI, TO>));
-            types.Add(typeof(LeafNode<JI, JO, TI, TO>));
+            types.Add(typeof(RootNode));
+            types.Add(typeof(BranchNode));
+            types.Add(typeof(LeafNode));
 
             return types.ToArray();
         }
