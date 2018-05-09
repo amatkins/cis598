@@ -21,11 +21,6 @@ namespace SwarmNet
         #region Properties
 
         /// <summary>
-        /// The angular index of a given radius in a circular layout.
-        /// </summary>
-        [DataMember]
-        public int? AngularIndex { get; set; }
-        /// <summary>
         /// The neighbor that leaving agents will go to.
         /// </summary>
         public abstract GraphNode Exit { get; }
@@ -62,20 +57,10 @@ namespace SwarmNet
         [DataMember]
         public SetPiece Piece { get; set; }
         /// <summary>
-        /// The radius from the the center of a circular layout.
+        /// The set of coordinates used to place this node in any layout scheme.
         /// </summary>
         [DataMember]
-        public int? RadiusIndex { get; set; }
-        /// <summary>
-        /// The x index of a grid layout.
-        /// </summary>
-        [DataMember]
-        public int? X { get; set; }
-        /// <summary>
-        /// The y index of a grid layout.
-        /// </summary>
-        [DataMember]
-        public int? Y { get; set; }
+        public int[] Layout { get; set; }
 
         #endregion
 

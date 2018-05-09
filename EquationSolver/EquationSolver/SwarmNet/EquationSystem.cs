@@ -11,35 +11,41 @@ namespace EquationSolver.SwarmNet
     {
         public ModelGraph System { get; private set; }
 
-        public EquationSystem(int min, int max, int attempts, params int[][] eqs)
+        public EquationSystem(int minRange, int maxRange, int leaves, int cycles,int adjustments, params int[][] eqs)
         {
             GraphNode cur, gate;
 
             System = new ModelGraph();
 
-            RootNode root = new RootNode(new RowMaker(eqs[0].Length, min, max, 20, attempts));
+            RootNode root = new RootNode(new RowMaker(eqs[0].Length, minRange, maxRange, 20, cycles));
 
-            root.AddNeighbor(new BranchNode(new Gate(attempts, eqs.Length), 3));
+            root.AddNeighbor(new BranchNode(new Gate(cycles, eqs.Length), 3));
             System.Roots.Add(root);
 
             gate = root.Neighbors[0];
             System.Branches.Add((BranchNode)root.Neighbors[0]);
             cur = gate;
-            cur.AddNeighbor(new BranchNode(new CoefficientSet(0, attempts, eqs[0]), 3));
+            cur.AddNeighbor(new BranchNode(new ProblemColumn(0, adjustments, leaves, eqs[0]), leaves + 2));
             System.Branches.Add((BranchNode)cur.Neighbors[1]);
             cur = cur.Neighbors[1];
 
             for (int i = 1; i < eqs.Length; i++)
             {
-                cur.AddNeighbor(new LeafNode(new VariableAdjuster()));
-                System.Leaves.Add((LeafNode)cur.Neighbors[1]);
-                cur.AddNeighbor(new BranchNode(new CoefficientSet(i, attempts, eqs[i]), 3));
-                System.Branches.Add((BranchNode)cur.Neighbors[2]);
-                cur = cur.Neighbors[2];
+                for (int j = 0; j < leaves; j++)
+                {
+                    cur.AddNeighbor(new LeafNode(new RowAdjuster(eqs[i - 1])));
+                    System.Leaves.Add((LeafNode)cur.Neighbors[1 + j]);
+                }
+                cur.AddNeighbor(new BranchNode(new ProblemColumn(i, adjustments, leaves, eqs[i]), leaves + 2));
+                System.Branches.Add((BranchNode)cur.Neighbors[leaves + 1]);
+                cur = cur.Neighbors[leaves + 1];
             }
 
-            cur.AddNeighbor(new LeafNode(new VariableAdjuster()));
-            System.Leaves.Add((LeafNode)cur.Neighbors[1]);
+            for (int j = 0; j < leaves; j++)
+            {
+                cur.AddNeighbor(new LeafNode(new RowAdjuster(eqs[eqs.Length - 1])));
+                System.Leaves.Add((LeafNode)cur.Neighbors[1 + j]);
+            }
             cur.AddNeighbor(gate);
         }
     }

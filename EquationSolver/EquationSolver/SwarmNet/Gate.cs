@@ -12,17 +12,18 @@ namespace EquationSolver.SwarmNet
         #region Fields
 
         private int _tot, _maxAttempts;
-        private bool _pass;
 
         #endregion
 
         #region Constructors
 
-        public Gate(int max, int eqNum)
+        public Gate(int maxAttempts, int colNum)
         {
-            _tot = eqNum;
-            _pass = false;
-            _maxAttempts = max;
+            _tot = colNum;
+            _maxAttempts = maxAttempts;
+            Max = 3;
+            Min = 0;
+            State = 1;
         }
 
         #endregion
@@ -35,8 +36,8 @@ namespace EquationSolver.SwarmNet
             {
                 case CommType.RESP:
                     Tuple<int, int> mssg = (Tuple<int, int>)m.Contents;
-                    _pass = mssg.Item1 > _maxAttempts || mssg.Item2 >= _tot;
-                    return new Message(new JuncMessage(0, _pass, false), CommType.RESP);
+                    State = mssg.Item1 > _maxAttempts || mssg.Item2 >= _tot ? 0 : 1;
+                    return new Message(new Tuple<int, bool, bool, decimal>(0, State == 0, false, 0), CommType.RESP);
             }
             return new Message(null, CommType.TERM);
         }
@@ -51,7 +52,7 @@ namespace EquationSolver.SwarmNet
 
         public override int GetExit(int paths)
         {
-            return _pass ? 0 : 1;
+            return State;
         }
 
         #endregion

@@ -11,7 +11,7 @@ namespace EquationSolver.SwarmNet
     {
         #region Fields
 
-        private int _maxAttempts, _maxRows, _maxRange, _minRange, _colNum;
+        private int _maxCycles, _maxRows, _maxRange, _minRange, _colNum;
         private int[] _rowNum;
 
         #endregion
@@ -22,9 +22,9 @@ namespace EquationSolver.SwarmNet
 
         #region Constructors
 
-        public RowMaker(int columns, int minValue, int maxValue, int maxRows, int maxAttempts)
+        public RowMaker(int columns, int minValue, int maxValue, int maxRows, int maxCycles)
         {
-            _maxAttempts = maxAttempts;
+            _maxCycles = maxCycles;
             _maxRange = maxValue;
             _maxRows = maxRows;
             _minRange = minValue;
@@ -45,7 +45,7 @@ namespace EquationSolver.SwarmNet
                 case CommType.RESP:
                     Tuple<string, int, decimal[]> mssg = (Tuple<string, int, decimal[]>)m.Contents;
                     int index = int.Parse(mssg.Item1);
-                    if (mssg.Item2 > _maxAttempts)
+                    if (mssg.Item2 > _maxCycles)
                     {
                         if (_solution[index] == null)
                         {
@@ -89,7 +89,7 @@ namespace EquationSolver.SwarmNet
 
             ShouldSpawn = _rowNum.Any(i => i < _maxRows);
 
-            return new VariableSet(newID, _colNum, _minRange, _maxRange);
+            return new SolutionRow(newID, _colNum, _minRange, _maxRange);
         }
         public override void Leave(Agent a)
         {

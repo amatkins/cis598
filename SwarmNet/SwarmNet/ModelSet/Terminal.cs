@@ -12,6 +12,11 @@ namespace SwarmNet
         /// </summary>
         [DataMember]
         public object Input { protected get; set; }
+        /// <summary>
+        /// The current output from this terminal.
+        /// </summary>
+        [DataMember]
+        public object Output { get; protected set; }
 
         #endregion
     }

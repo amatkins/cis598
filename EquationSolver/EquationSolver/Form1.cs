@@ -44,7 +44,7 @@ namespace EquationSolver
         private void Calculating()
         {
             string cur_solution = ((SwarmNet.RowMaker)_system.System.Roots[0].Port)._solution.Aggregate("", (str, da) => string.Format("{0}{1}{2}", str, Environment.NewLine, da == null ? "no Solution" : da.Aggregate("", (str2, d) => string.Format("{0} {1}", str2, d))));
-            textBox1.Text = (_system.System.Agents).Aggregate(cur_solution, (str, a) => string.Format("{0}{1}Agent: {2}", str, Environment.NewLine, ((SwarmNet.VariableSet)a).Vars.Aggregate("", (str2, v) => string.Format("{0} {1}", str2, v))));
+            textBox1.Text = (_system.System.Agents).Aggregate(cur_solution, (str, a) => string.Format("{0}{1}Agent: {2} {3}", str, Environment.NewLine, ((SwarmNet.SolutionRow)a).Columns.Aggregate("", (str2, v) => string.Format("{0} {1}", str2, v)), ((SwarmNet.SolutionRow)a).AdjustMag));
         }
 
         private void WriteOut()
@@ -78,9 +78,11 @@ namespace EquationSolver
         private void loadSystemToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string input = toolStripTextBox1.Text;
+            string input2 = toolStripTextBox2.Text;
 
             int[][] equations = input.Split(';').Select(c => c.Split(',').Select(r => int.Parse(r)).ToArray()).ToArray();
-            _system = new SwarmNet.EquationSystem(-10, 10, 100, equations);
+            int[] range = input2.Split(',').Select(m => int.Parse(m)).ToArray();
+            _system = new SwarmNet.EquationSystem(range[0], range[1], 2, 5, 100, equations);
         }
     }
 }

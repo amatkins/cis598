@@ -7,24 +7,28 @@ using SwarmNet;
 
 namespace EquationSolver.SwarmNet
 {
-    class CoefficientSet : Junction
+    class ProblemColumn : Junction
     {
         #region Fields
 
         private int[] _coefs;
+        private bool _fail;
+        private decimal _mag;
         private int _maxAttempts;
-        private bool[] _nextDirs;
-        private bool _dir, _pass;
+        private bool _pass;
         private string _tag;
 
         #endregion
 
         #region Constructors
 
-        public CoefficientSet(int id, int max, params int[] coefs)
+        public ProblemColumn(int id, int maxAttempts, int leaves, params int[] coefs)
         {
             _coefs = coefs;
-            _maxAttempts = max;
+            _maxAttempts = maxAttempts;
+            Max = leaves;
+            Min = 1;
+            State = 0;
             _pass = false;
             _tag = id.ToString();
         }
@@ -42,16 +46,15 @@ namespace EquationSolver.SwarmNet
                     if (mssg.Item2 > _maxAttempts)
                     {
                         _pass = true;
-                        _dir = false;
+                        _fail = true;
                     }
                     else
                     {
-                        decimal result = Math.Round((_tag.Equals(mssg.Item1)? 1 : 0) - _coefs.Select((c, i) => c * mssg.Item3[i]).Aggregate((a, b) => a + b), 2);
-                        _pass = result == 0;
-                        _dir = result > -1;
-                        _nextDirs = _coefs.Select(c => c < 0 ? !_dir : _dir).ToArray();
+                        _mag = Math.Round((_tag.Equals(mssg.Item1) ? 1 : 0) - _coefs.Select((c, i) => c * mssg.Item3[i]).Aggregate((a, b) => a + b), 1);
+                        _pass = _mag == 0;
+                        _fail = false;
                     }
-                    return new Message(new JuncMessage(1, _pass, _dir, _nextDirs), CommType.RESP);
+                    return new Message(new Tuple<int, bool, bool, decimal>(1, _pass, _fail, _mag), CommType.RESP);
                 default:
                     return new Message(null, CommType.TERM);
             }
@@ -68,7 +71,17 @@ namespace EquationSolver.SwarmNet
 
         public override int GetExit(int paths)
         {
-            return _pass ? 2 : 1;
+            int exit;
+
+            if (_pass)
+                return exit = Max + 1;
+            else
+            {
+                exit = State;
+                State = Min + (State + 1) % Max;
+            }
+                
+            return exit;
         }
 
         #endregion

@@ -8,10 +8,15 @@ namespace SwarmNet
         #region Properties
 
         /// <summary>
-        /// The max state that this junction can be.
+        /// The maximum value of the state.
         /// </summary>
         [DataMember]
         public int Max { get; protected set; }
+        /// <summary>
+        /// The minimum value of the state.
+        /// </summary>
+        [DataMember]
+        public int Min { get; protected set; }
         /// <summary>
         /// The current state of this junction.
         /// </summary>
@@ -23,10 +28,10 @@ namespace SwarmNet
         #region Methods
 
         /// <summary>
-        /// Means of getting an exit path from the current state of the junction.
+        /// Te means of aquiring an exit path from this graph.
         /// </summary>
         /// <param name="paths">The number of exits.</param>
-        /// <returns>The path the agent will leave by.</returns>
+        /// <returns>The path the agent will leave through.</returns>
         public abstract int GetExit(int paths);
 
         #endregion
