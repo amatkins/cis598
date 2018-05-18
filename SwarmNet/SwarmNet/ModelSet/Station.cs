@@ -6,7 +6,7 @@ namespace SwarmNet
 {
     [DataContract(Name = "SetPiece", Namespace = "SwarmNet")]
     [KnownType("GetKnownTypes")]
-    public abstract class SetPiece
+    public abstract class Station
     {
         #region Properties
 

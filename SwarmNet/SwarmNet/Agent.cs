@@ -21,26 +21,48 @@ namespace SwarmNet
 
         #endregion
 
-        #region Methods
+        #region Methods - Communication
 
         /// <summary>
-        /// Communicate with a port set piece.
-        /// </summary>
-        /// <param name="m">Incoming message from port.</param>
-        /// <returns>Outgoing responce from agent.</returns>
-        public abstract Message CommPort(Message m);
-        /// <summary>
-        /// Communicate with a junction set piece.
+        /// Communicate with a junction station.
         /// </summary>
         /// <param name="m">Incoming message from junction.</param>
         /// <returns>Outgoing response from agent.</returns>
         public abstract Message CommJunc(Message m);
         /// <summary>
-        /// Communicate with a terminal set piece.
+        /// Communicate with a port station upon entering the graph.
+        /// </summary>
+        /// <param name="m">Incoming message from port.</param>
+        /// <returns>Outgoing responce from agent.</returns>
+        public abstract Message CommPort(Message m);
+        /// <summary>
+        /// Communicate with a terminal station.
         /// </summary>
         /// <param name="m">Incoming message from terminal.</param>
         /// <returns>Outgoing responce from agent.</returns>
         public abstract Message CommTerm(Message m);
+        /// <summary>
+        /// Communicate with a port station upon leaving the graph.
+        /// </summary>
+        /// <param name="m">Incoming message from port.</param>
+        /// <returns>Outgoing response from agent.</returns>
+        public abstract Message Dismissal(Message m);
+
+        #endregion
+
+        #region Methods - Graph Interactions
+
+        /// <summary>
+        /// The means of acquiring an exit path from the node.
+        /// </summary>
+        /// <param name="paths">The number of exits.</param>
+        /// <returns>The path the agent will leave through.</returns>
+        public abstract int GetExit(int paths);
+
+        #endregion
+
+        #region Methods - Logistics
+
         /// <summary>
         /// Allows Two agents to be compared via their priority.
         /// </summary>

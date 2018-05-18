@@ -28,6 +28,7 @@ namespace PolyE
         {
             _divs = new int[paths - 1];
             Max = max;
+            Min = 0;
             State = 0;
 
             int div = max / (paths - 1),
@@ -43,6 +44,22 @@ namespace PolyE
 
         #region Methods - Divider Operations
 
+        /// <summary>
+        /// Resets the max number of states and scales the dividers accordingly.
+        /// </summary>
+        /// <param name="s">The new max size.</param>
+        public void ResetMax(int s)
+        {
+            if (s < _divs.Length)
+                return;
+
+            for (int i = 0; i < _divs.Length; i++)
+            {
+                _divs[i] = (int)Math.Round(_divs[i] * s / (decimal)Max);
+            }
+
+            Max = s;
+        }
         /// <summary>
         /// Sets the location of a divider in the state-space.
         /// </summary>
@@ -84,7 +101,7 @@ namespace PolyE
         /// <returns>The string representation of this conditional.</returns>
         public override string ToString()
         {
-            return string.Format("[{0}]", string.Join(", ", _divs));
+            return string.Format("<{0}, [{1}]>", State, string.Join(", ", _divs));
         }
 
         #endregion
@@ -99,8 +116,8 @@ namespace PolyE
         public override Message Communicate(Message m)
         {
             if (m.Contents != null)
-                State = (int)m.Contents % Max;
-            return new Message(null, CommType.TERM);
+                State = (int)m.Contents % (Max - Min) + Min;
+            return new Message(State, CommType.TERM);
         }
         /// <summary>
         /// Determines an exit path based on the current state and the state-space partitions.

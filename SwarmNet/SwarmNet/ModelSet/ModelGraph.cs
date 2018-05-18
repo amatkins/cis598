@@ -117,7 +117,7 @@ namespace SwarmNet
                     if (isHead)
                     {
                         ((RootNode)model_node).Port = port();
-                        if (model_node.Neighbors[0].Piece == null)
+                        if (model_node.Neighbors[0].Station == null)
                             next_model.Add(model_node.Neighbors[0]);
                     }
                     else
@@ -127,7 +127,7 @@ namespace SwarmNet
                             ((BranchNode)model_node).Junction = junc(model_node.Neighbors.Length);
                             for (int j = 0; j < model_node.Neighbors.Length; j++)
                             {
-                                if (model_node.Neighbors[j].Piece == null)
+                                if (model_node.Neighbors[j].Station == null)
                                     next_model.Add(model_node.Neighbors[j]);
                             }
                         }
@@ -277,53 +277,104 @@ namespace SwarmNet
         #region Methods - Events
 
         /// <summary>
-        /// Add a new agent to the graph.
+        /// Performs a dismissal interaction between port and agent.
         /// </summary>
-        public void Enter(int index)
+        /// <param name="s">Port station dismissing the agent.</param>
+        /// <param name="a">Agent being dismissed.</param>
+        private void Dismissal(Port s, Agent a)
         {
-            if (index < 0 || index >= Roots.Count)
-                return;
+            if (s != null)
+            {
+                Message m = s.InitDism();
 
-            Agents.Add(Roots[index].Enter());
+                do
+                {
+                    m = s.Dismissal(a.Dismissal(m));
+                } while (m.Type != CommType.TERM);
+            }
         }
         /// <summary>
-        /// Remove an agent from the graph.
+        /// Performs interactions between a port and agent.
         /// </summary>
-        public void Leave(int index)
+        /// <param name="s">The port the agent is on.</param>
+        /// <param name="a">The agent on the port.</param>
+        private void InteractPort(Port s, Agent a)
         {
-            RootNode root;
-            Agent a;
-            Message m;
-
-            if (index < 0 || index >= Roots.Count)
-                return;
-
-            // Get the agent that is leaving
-            root = Roots[index];
-            a = root.Leave();
-            m = root.InitComm();
-
-            // Communicate until the node quits
-            do
+            if (s != null)
             {
-                m = root.Communicate(a.CommPort(m));
-            } while (m.Type != CommType.TERM);
+                Message m = s.InitComm();
 
-            Agents.Remove(a);
+                do
+                {
+                    m = s.Communicate(a.CommPort(m));
+                } while (m.Type != CommType.TERM);
+            }
         }
+        /// <summary>
+        /// Performs interactions between a junction and agent.
+        /// </summary>
+        /// <param name="s">The junction the agent is on.</param>
+        /// <param name="a">The agent on the junction.</param>
+        private void InteractJunc(Junction s, Agent a)
+        {
+            if (s != null)
+            {
+                Message m = s.InitComm();
+
+                do
+                {
+                    m = s.Communicate(a.CommJunc(m));
+                } while (m.Type != CommType.TERM);
+            }
+        }
+        /// <summary>
+        /// Performs interactions between a terminal and agent.
+        /// </summary>
+        /// <param name="s">The terminal the agent is on.</param>
+        /// <param name="a">The agent on the terminal.</param>
+        private void InteractTerm(Terminal s, Agent a)
+        {
+            if (s != null)
+            {
+                Message m = s.InitComm();
+
+                do
+                {
+                    m = s.Communicate(a.CommTerm(m));
+                } while (m.Type != CommType.TERM);
+            }
+        }
+        /// <summary>
+        /// Add a new agent to the graph.
+        /// </summary>
+        public bool Enter(int index)
+        {
+            if (index < 0 || index >= Roots.Count)
+                return false;
+
+            Agent a = Roots[index].Enter();
+            if (a != null)
+            {
+                Agents.Add(a);
+                return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Moves the simulation of the model along by one generic time unit.
         /// </summary>
         public void Tick()
         {
             // Perform interactions for all the root nodes
-            Parallel.For(0, Roots.Count, ProcessRootFull);
+            Parallel.ForEach(Roots, ProcessRootAll);
 
             // Perform interactions for all the branch nodes
-            Parallel.ForEach(Branches, ProcessBranchFull);
+            Parallel.ForEach(Branches, ProcessBranchAll);
 
             // Perform interactions for all the leaf nodes
-            Parallel.ForEach(Leaves, ProcessLeafFull);
+            Parallel.ForEach(Leaves, ProcessLeafAll);
 
             // Move all agents into their respective nodes
             Parallel.ForEach(Roots, root => root.Flush());
@@ -334,102 +385,109 @@ namespace SwarmNet
         /// Processes all agents in a root node.
         /// </summary>
         /// <param name="r">Index of root node to processes.</param>
-        private void ProcessRootFull(int r)
+        private void ProcessRootAll(RootNode root)
         {
-            // If the head is not connected, then throw an exception
-            if (Roots[r].Exit == null)
-                throw new InvalidOperationException("Entrance to graph not connected.");
-
             // Exit graph through portal
-            while (Roots[r].ExternalOut.Count > 0)
+            while (root.ExternalOut.Count > 0)
             {
-                Leave(r);
+                // Get agent from node
+                Agent a = root.Leave();
+
+                // Perform transaction between station and agent
+                Dismissal(root.Port, a);
+
+                // Remove agent from graph
+                Agents.Remove(a);
             }
             // Enter the graph
-            while (Roots[r].Out.Count > 0)
+            while (root.Out.Count > 0)
             {
-                Roots[r].Exit.Enqueue(Roots[r].Dequeue());
+                // Get agent from node
+                Agent a = root.Dequeue();
+
+                // Perform transaction between station and agent
+                InteractPort(root.Port, a);
+
+                // Get node that agent will travel to next
+                GraphNode exit = root.GetExit(a);
+
+                // Move agent to node if available, otherwise put back onto root
+                if (exit != null)
+                    exit.Enqueue(a);
+                else
+                    root.Enqueue(a);
             }
         }
         /// <summary>
         /// Processes all agents in a branch node.
         /// </summary>
         /// <param name="branch">Branch node to processes.</param>
-        private void ProcessBranchFull(BranchNode branch)
+        private void ProcessBranchAll(BranchNode branch)
         {
-            Agent a;
-            Message m;
-
             // For every agent on the node...
             while (branch.Out.Count > 0)
             {
-                // Get next agent and start communications
-                a = branch.Dequeue();
-                m = branch.InitComm();
+                // Get next agent
+                Agent a = branch.Dequeue();
 
-                // Communicate until the node quits
-                do
-                {
-                    m = branch.Communicate(a.CommJunc(m));
-                } while (m.Type != CommType.TERM);
+                // Perfrom transaction between station and agent
+                InteractJunc(branch.Junction, a);
 
-                // Throw an exception if the agent can't leave
-                if (branch.Exit == null)
-                    throw new InvalidOperationException("Exit path not connected to a node.");
+                // Get node that agent will travel to next
+                GraphNode exit = branch.GetExit(a);
 
-                // Have the agent leave.
-                branch.Exit.Enqueue(a);
+                // Move agent to node if available, otherwise put back onto branch
+                if (exit != null)
+                    exit.Enqueue(a);
+                else
+                    branch.Enqueue(a);
             }
         }
         /// <summary>
         /// Process all agents in a leaf node.
         /// </summary>
         /// <param name="leaf">Leaf node to processes.</param>
-        private void ProcessLeafFull(LeafNode leaf)
+        private void ProcessLeafAll(LeafNode leaf)
         {
-            Agent a;
-            Message m;
-
             // For every agent on the node...
             while (leaf.Out.Count > 0)
             {
-                // Get next agent and start communications
-                a = leaf.Dequeue();
-                m = leaf.InitComm();
+                // Get next agent
+                Agent a = leaf.Dequeue();
 
-                // Communicate until the node quits
-                do
-                {
-                    m = leaf.Communicate(a.CommTerm(m));
-                } while (m.Type != CommType.TERM);
+                // Perform transaction between station and agent
+                InteractTerm(leaf.Terminal, a);
 
-                // Throw an exception if the agent can't leave
-                if (leaf.Exit == null)
-                    throw new InvalidOperationException("Exit path not connected to a node.");
+                // Get node that agent will travel to next
+                GraphNode exit = leaf.GetExit(a);
 
-                // Have the agent leave.
-                leaf.Exit.Enqueue(a);
+                // Move agent to node if available, otherwise put back onto leaf
+                if (exit != null)
+                    exit.Enqueue(a);
+                else
+                    leaf.Enqueue(a);
             }
         }
+
         /// <summary>
         /// Moves the simulation of the model along by a part of one generic time unit.
         /// </summary>
         /// <returns>Whether or not a tick has passed.</returns>
         public bool SemiTick()
         {
-            Tuple<bool> doneTick = new Tuple<bool>(true);
+            long toProcess = 0;
 
             // Perform interaction for all the root nodes
-            Parallel.For<Tuple<bool>>(0, Roots.Count, () => new Tuple<bool>(true), ProcessRootSingle, (d) => Interlocked.Exchange<Tuple<bool>>(ref doneTick, !d.Item1 ? d : doneTick));
+            Parallel.For<long>(0, Roots.Count, () => 0, ProcessRootSingle, (d) => Interlocked.Add(ref toProcess, d));
             
             // Perform interactions for all the branch nodes
-            Parallel.For<Tuple<bool>>(0, Branches.Count, () => new Tuple<bool>(true), ProcessBranchSingle, (d) => Interlocked.Exchange<Tuple<bool>>(ref doneTick, !d.Item1 ? d : doneTick));
+            Parallel.For<long>(0, Branches.Count, () => 0, ProcessBranchSingle, (d) => Interlocked.Add(ref toProcess, d));
 
             // Perform interactions for all the branch nodes
-            Parallel.For<Tuple<bool>>(0, Branches.Count, () => new Tuple<bool>(true), ProcessLeafSingle, (d) => Interlocked.Exchange<Tuple<bool>>(ref doneTick, !d.Item1 ? d : doneTick));
+            Parallel.For<long>(0, Branches.Count, () => 0, ProcessLeafSingle, (d) => Interlocked.Add(ref toProcess, d));
 
             // If this is the end of the tick
-            if (doneTick.Item1)
+            if (toProcess == 0)
             {
                 // Move all agents into their respective nodes
                 Parallel.ForEach(Roots, root => root.Flush());
@@ -437,7 +495,7 @@ namespace SwarmNet
                 Parallel.ForEach(Leaves, leaf => leaf.Flush());
             }
 
-            return doneTick.Item1;
+            return toProcess == 0;
         }
         /// <summary>
         /// Processes the first available agent in a root node.
@@ -446,30 +504,52 @@ namespace SwarmNet
         /// <param name="state">State of the parallel loop.</param>
         /// <param name="doneTick">Whether or not the process cycle has been completed.</param>
         /// <returns>The doneTick variable.</returns>
-        private Tuple<bool> ProcessRootSingle(int r, ParallelLoopState state, Tuple<bool> doneTick)
+        private long ProcessRootSingle(int r, ParallelLoopState state, long toProcess)
         {
-            // If the head is not connected, then throw an exception
-            if (Roots[r].Exit == null)
-                throw new InvalidOperationException("Entrance to graph not connected.");
+            // Get root
+            RootNode root = Roots[r];
 
-            // Exit graph through portal
-            if (Roots[r].ExternalOut.Count > 0)
+            // If there is an agent leaving
+            if (root.ExternalOut.Count > 0)
             {
-                Leave(r);
-                // If this wasn't the last action for this step, then the tick isn't done
-                if (Roots[r].ExternalOut.Count > 0)
-                    doneTick = new Tuple<bool>(false);
-            }
-            // Enter the graph
-            if (Roots[r].Out.Count > 0)
-            {
-                Roots[r].Exit.Enqueue(Roots[r].Dequeue());
-                // If this wasn't the last action for this step, then the tick isn't done
-                if (Roots[r].Out.Count > 0)
-                    doneTick = new Tuple<bool>(false);
+                // Get agent from node
+                Agent a = root.Leave();
+
+                // Perform transaction between station and agent
+                Dismissal(root.Port, a);
+
+                // Remove agent from graph
+                Agents.Remove(a);
+
+                // If there are more agents, then the tick isn't done
+                if (root.ExternalOut.Count > 0)
+                    toProcess++;
             }
 
-            return doneTick;
+            // If there is an agent entering
+            if (root.Out.Count > 0)
+            {
+                // Get agent from the node
+                Agent a = root.Dequeue();
+
+                // Perform transaction between station and agent
+                InteractPort(root.Port, a);
+
+                // Get node that agent will travel to next
+                GraphNode exit = root.GetExit(a);
+
+                // Move agent to node if avaialable, otherwise put back onto root
+                if (exit != null)
+                    exit.Enqueue(a);
+                else
+                    root.Enqueue(a);
+
+                // If there are more agents, then the tick isn't done
+                if (root.Out.Count > 0)
+                    toProcess++;
+            }
+
+            return toProcess;
         }
         /// <summary>
         /// Processes the first available agent in a branch node.
@@ -478,34 +558,35 @@ namespace SwarmNet
         /// <param name="state">State of the parallel loop.</param>
         /// <param name="doneTick">Whether or not the process cylce has been completed.</param>
         /// <returns>The doneTick variable.</returns>
-        private Tuple<bool> ProcessBranchSingle(int b, ParallelLoopState state, Tuple<bool> doneTick)
+        private long ProcessBranchSingle(int b, ParallelLoopState state, long toProcess)
         {
-            // If there are no agents, then continue
-            if (Branches[b].Out.Count > 0)
+            // Get branch
+            BranchNode branch = Branches[b];
+
+            // If there is an agent to process
+            if (branch.Out.Count > 0)
             {
-                // Get next agent and start communications
-                Agent a = Branches[b].Dequeue();
-                Message m = Branches[b].InitComm();
+                // Get agent from node
+                Agent a = branch.Dequeue();
 
-                // Communicate until the node quits
-                do
-                {
-                    m = Branches[b].Communicate(a.CommJunc(m));
-                } while (m.Type != CommType.TERM);
+                // Perform transaction between station and agent
+                InteractJunc(branch.Junction, a);
 
-                // Throw an exception if the agent can't leave
-                if (Branches[b].Exit == null)
-                    throw new InvalidOperationException("Exit path not connected to a node.");
+                // Get node that agent will travel to next
+                GraphNode exit = branch.GetExit(a);
 
-                // Have the agent leave.
-                Branches[b].Exit.Enqueue(a);
+                // Move agent to node if available, otherwise put back onto branch
+                if (exit != null)
+                    exit.Enqueue(a);
+                else
+                    branch.Enqueue(a);
 
-                // If this wasn't the last action for this step, then the tick isn't done
-                if (Branches[b].Out.Count > 0)
-                    doneTick = new Tuple<bool>(false);
+                // If there are more agents, then the tick isn't done
+                if (branch.Out.Count > 0)
+                    toProcess++;
             }
 
-            return doneTick;
+            return toProcess++;
         }
         /// <summary>
         /// Processes the first available agent in a leaf node.
@@ -514,34 +595,35 @@ namespace SwarmNet
         /// <param name="state">State of the parallel loop.</param>
         /// <param name="doneTick">Whether or not the process cycle has been completed.</param>
         /// <returns>The doneTick variable.</returns>
-        private Tuple<bool> ProcessLeafSingle(int l, ParallelLoopState state, Tuple<bool> doneTick)
+        private long ProcessLeafSingle(int l, ParallelLoopState state, long toProcess)
         {
-            // If there are no agents, then continue
-            if (Leaves[l].Out.Count > 0)
+            // Get leaf
+            LeafNode leaf = Leaves[l];
+
+            // If there is an agent to process
+            if (leaf.Out.Count > 0)
             {
-                // Get next agent and start communications
-                Agent a = Leaves[l].Dequeue();
-                Message m = Leaves[l].InitComm();
+                // Get agent from node
+                Agent a = leaf.Dequeue();
 
-                // Communicate until the node quits
-                do
-                {
-                    m = Leaves[l].Communicate(a.CommTerm(m));
-                } while (m.Type != CommType.TERM);
+                // Perform transaction between station and agent
+                InteractTerm(leaf.Terminal, a);
 
-                // Throw an exception if the agent can't leave
-                if (Leaves[l].Exit == null)
-                    throw new InvalidOperationException("Exit path not connected to a node.");
+                // Get node that agent will travel to next
+                GraphNode exit = leaf.GetExit(a);
 
-                // Have the agent leave.
-                Leaves[l].Exit.Enqueue(a);
+                // Move agent to node if available, otherwise put back onto leaf
+                if (exit != null)
+                    exit.Enqueue(a);
+                else
+                    leaf.Enqueue(a);
 
-                // If this wasn't the last action for this step, then the tick isn't done
-                if (Leaves[l].Out.Count > 0)
-                    doneTick = new Tuple<bool>(false);
+                // If there are more agents, then the tick isn't done
+                if (leaf.Out.Count > 0)
+                    toProcess++;
             }
 
-            return doneTick;
+            return toProcess;
         }
 
         #endregion

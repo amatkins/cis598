@@ -3,7 +3,7 @@
 namespace SwarmNet
 {
     [DataContract(Name = "Terminal", Namespace = "SwarmNet")]
-    public abstract class Terminal : SetPiece
+    public abstract class Terminal : Station
     {
         #region Properties
         

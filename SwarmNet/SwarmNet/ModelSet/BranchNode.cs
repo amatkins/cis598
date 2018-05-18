@@ -8,17 +8,7 @@ namespace SwarmNet
     public class BranchNode : GraphNode
     {
         #region Properties
-
-        /// <summary>
-        /// The path that an agent can leave through.
-        /// </summary>
-        public override GraphNode Exit
-        {
-            get
-            {
-                return Neighbors[((Junction)Piece).GetExit(Neighbors.Length)];
-            }
-        }
+        
         /// <summary>
         /// The junction on this node.
         /// </summary>
@@ -26,11 +16,11 @@ namespace SwarmNet
         {
             get
             {
-                return (Junction)Piece;
+                return (Junction)Station;
             }
             set
             {
-                Piece = value;
+                Station = value;
             }
         }
 
@@ -51,7 +41,7 @@ namespace SwarmNet
             Neighbors = new GraphNode[neighbors];
             _nextNeighbor = 0;
             Out = new List<Agent>();
-            Piece = null;
+            Station = null;
         }
         /// <summary>
         /// Constructs a new branch node with a set number of neighbors and containing the provided junction.
@@ -67,30 +57,31 @@ namespace SwarmNet
             Neighbors = new GraphNode[neighbors];
             _nextNeighbor = 0;
             Out = new List<Agent>();
-            Piece = junction;
+            Station = junction;
             junction.Location = this;
         }
 
         #endregion
         
-        #region Methods - Setpiece Operations
+        #region Methods - Station Operations
 
         /// <summary>
-        /// Acts as middle man between agent and setpiece.
+        /// Get the node that the agent will travel to next.
         /// </summary>
-        /// <param name="m">The message to pass to the setpiece.</param>
-        /// <returns>The setpiece's reponse.</returns>
-        public Message Communicate(Message m)
+        /// <param name="a">The agent that will be traveling.</param>
+        /// <returns>The next node.</returns>
+        public override GraphNode GetExit(Agent a)
         {
-            return ((Junction)Piece).Communicate(m);
-        }
-        /// <summary>
-        /// Start communications with an agent.
-        /// </summary>
-        /// <returns>The first message.</returns>
-        public Message InitComm()
-        {
-            return ((Junction)Piece).InitComm();
+            if (Station != null)
+            {
+                GraphNode exit = Neighbors[((Junction)Station).GetExit(Neighbors.Length)];
+                if (exit != null)
+                    return exit;
+                else
+                    return Neighbors[a.GetExit(Neighbors.Length)];
+            }
+            else
+                return Neighbors[a.GetExit(Neighbors.Length)];
         }
 
         #endregion

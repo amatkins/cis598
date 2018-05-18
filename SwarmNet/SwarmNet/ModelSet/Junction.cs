@@ -3,7 +3,7 @@
 namespace SwarmNet
 {
     [DataContract(Name = "Junction", Namespace = "SwarmNet")]
-    public abstract class Junction : SetPiece
+    public abstract class Junction : Station
     {
         #region Properties
 
@@ -28,7 +28,7 @@ namespace SwarmNet
         #region Methods
 
         /// <summary>
-        /// Te means of aquiring an exit path from this graph.
+        /// The means of aquiring an exit from the node.
         /// </summary>
         /// <param name="paths">The number of exits.</param>
         /// <returns>The path the agent will leave through.</returns>

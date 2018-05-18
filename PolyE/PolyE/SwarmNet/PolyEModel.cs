@@ -53,7 +53,7 @@ namespace PolyE
             cmin = _rand.Next(6);
             cmax = cmin + _rand.Next(10) + 1;
 
-            return new ExprGenerator(new Tuple<int, int>(cmin, cmax), 5);
+            return new ExprGenerator(cmin, cmax, 5);
         }
         /// <summary>
         /// Method for creating junctions.
@@ -140,7 +140,7 @@ namespace PolyE
             if (_graph.Agents.Count < 50)
                 _graph.Enter(0);
 
-            _graph.Tick();
+            _graph.SemiTick();
         }
     }
 }

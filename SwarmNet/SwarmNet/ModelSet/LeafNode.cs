@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace SwarmNet
@@ -7,17 +8,7 @@ namespace SwarmNet
     public class LeafNode : GraphNode
     {
         #region Properties
-
-        /// <summary>
-        /// The exit from this node.
-        /// </summary>
-        public override GraphNode Exit
-        {
-            get
-            {
-                return Neighbors[0];
-            }
-        }
+        
         /// <summary>
         /// The terminal on this node.
         /// </summary>
@@ -25,11 +16,11 @@ namespace SwarmNet
         {
             get
             {
-                return (Terminal)Piece;
+                return (Terminal)Station;
             }
             set
             {
-                Piece = value;
+                Station = value;
             }
         }
 
@@ -46,7 +37,7 @@ namespace SwarmNet
             Neighbors = new GraphNode[1];
             _nextNeighbor = 0;
             Out = new List<Agent>();
-            Piece = null;
+            Station = null;
         }
         /// <summary>
         /// Constructs a new leaf node that contains the provided terminal.
@@ -59,30 +50,22 @@ namespace SwarmNet
             Neighbors = new GraphNode[1];
             _nextNeighbor = 0;
             Out = new List<Agent>();
-            Piece = terminal;
+            Station = terminal;
             terminal.Location = this;
         }
 
         #endregion
 
-        #region Methods - Set Piece Operations
+        #region Methods - Station Operations
         
         /// <summary>
-        /// Acts as a middle man between set piece and agent.
+        /// Leave the leaf onto it's only neighbor.
         /// </summary>
-        /// <param name="m">The message to pass to the set piece.</param>
-        /// <returns>The response from the set piece.</returns>
-        public Message Communicate(Message m)
+        /// <param name="a">The agent that is traveling.</param>
+        /// <returns>The next node.</returns>
+        public override GraphNode GetExit(Agent a)
         {
-            return ((Terminal)Piece).Communicate(m);
-        }
-        /// <summary>
-        /// Starts communication with an agent.
-        /// </summary>
-        /// <returns>The first message.</returns>
-        public Message InitComm()
-        {
-            return ((Terminal)Piece).InitComm();
+            return Neighbors[0];
         }
 
         #endregion

@@ -109,6 +109,11 @@ namespace EquationSolver.SwarmNet
             }
         }
 
+        public override int GetExit(int paths)
+        {
+            return 0;
+        }
+
         #endregion
     }
 }

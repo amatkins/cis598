@@ -177,6 +177,16 @@ namespace PolyE
             return new Message(null, CommType.TERM);
         }
 
+        public override int GetExit(int paths)
+        {
+            return 0;
+        }
+
+        public override Message Dismissal(Message m)
+        {
+            return new Message(null, CommType.TERM);
+        }
+
         #endregion
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace SwarmNet
@@ -7,17 +8,7 @@ namespace SwarmNet
     public class RootNode : GraphNode
     {
         #region Properties
-
-        /// <summary>
-        /// Exit, onto the graph from the head.
-        /// </summary>
-        public override GraphNode Exit
-        {
-            get
-            {
-                return Neighbors[0];
-            }
-        }
+        
         /// <summary>
         /// The agents queued to enter this graph.
         /// </summary>
@@ -35,11 +26,11 @@ namespace SwarmNet
         {
             get
             {
-                return (Port)Piece;
+                return (Port)Station;
             }
             set
             {
-                Piece = value;
+                Station = value;
             }
         }
 
@@ -58,7 +49,7 @@ namespace SwarmNet
             Neighbors = new GraphNode[1];
             _nextNeighbor = 0;
             Out = new List<Agent>();
-            Piece = null;
+            Station = null;
         }
         /// <summary>
         /// Constructs a new head node that contains the provided spawner.
@@ -73,34 +64,30 @@ namespace SwarmNet
             Neighbors = new GraphNode[1];
             _nextNeighbor = 0;
             Out = new List<Agent>();
-            Piece = portal;
+            Station = portal;
             portal.Location = this;
         }
 
         #endregion
 
-        #region Methods - Setpiece Operations
-
-        /// <summary>
-        /// Acts as middle man between agent and setpiece.
-        /// </summary>
-        /// <param name="m">The message to pass to the setpiece.</param>
-        /// <returns>The setpiece's reponse.</returns>
-        public Message Communicate(Message m)
-        {
-            return ((Port)Piece).Communicate(m);
-        }
+        #region Methods - Station Operations
+        
         /// <summary>
         /// Use the portal to spawn a new agent into the out flow.
         /// </summary>
         /// <returns>The agent that was added.</returns>
         public Agent Enter()
         {
-            // Spawn a new agent
-            Agent a = ((Port)Piece).Enter();
-            // Add it to the node and sort
-            ExternalIn.Add(a);
-            ExternalIn.Sort();
+            Agent a = null;
+            
+            if (Station != null)
+            {
+                // Spawn a new agent
+                a = ((Port)Station).Enter();
+                // Add it to the node and sort
+                ExternalIn.Add(a);
+                ExternalIn.Sort();
+            }
             // Return it for the use by the graph
             return a;
         }
@@ -128,12 +115,13 @@ namespace SwarmNet
             Out.Sort();
         }
         /// <summary>
-        /// Start communications with an agent.
+        /// Leave the root onto it's only neighbor.
         /// </summary>
-        /// <returns>The first message.</returns>
-        public Message InitComm()
+        /// <param name="a">The agent that is traveling.</param>
+        /// <returns>The next node.</returns>
+        public override GraphNode GetExit(Agent a)
         {
-            return ((Port)Piece).InitComm();
+            return Neighbors[0];
         }
         /// <summary>
         /// Use the portal to despawn an agent from the in flow.
@@ -149,7 +137,8 @@ namespace SwarmNet
             // Remove from queue
             ExternalOut.RemoveAt(0);
             // Despawn the agent
-            ((Port)Piece).Leave(a);
+            if (Station != null)
+                ((Port)Station).Leave(a);
             // Return it for use by the graph
             return a;
         }

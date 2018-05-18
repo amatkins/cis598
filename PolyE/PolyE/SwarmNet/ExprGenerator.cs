@@ -88,12 +88,13 @@ namespace PolyE
         /// <summary>
         /// Constructs a new spawner.
         /// </summary>
-        /// <param name="cRange">The range of coefficients the expressions can have.</param>
-        /// <param name="dRange">The range of degrees the expressions can have.</param>
-        public ExprGenerator(Tuple<int, int> cRange, int deg)
+        /// <param name="min">The inclusive minimum value of the coefficients.</param>
+        /// <param name="max">The exclusive maximum value of the coefficients.</param>
+        /// <param name="deg">The number of terms for the polynomial.</param>
+        public ExprGenerator(int min, int max, int deg)
         {
-            _coeffMax = cRange.Item2;
-            _coeffMin = cRange.Item1;
+            _coeffMax = max;
+            _coeffMin = min;
             _degree = deg;
             _queue = new List<Expression>();
         }
@@ -108,7 +109,7 @@ namespace PolyE
         /// <returns>The string representation of this spawner.</returns>
         public override string ToString()
         {
-            return string.Format("Next: {0} Coeffs: [{1}, {2}) Degrees: {3}", _nextID, _coeffMin, _coeffMax, _degree);
+            return string.Format("Next: {0} Coeffs: [{1}, {2}) Degree: {3}", _nextID, _coeffMin, _coeffMax, _degree);
         }
 
         #endregion
@@ -125,10 +126,27 @@ namespace PolyE
             return new Message(null, CommType.TERM);
         }
         /// <summary>
+        /// Dismissal of agents is unnecessary so a null terminator is sent.
+        /// </summary>
+        /// <param name="m">Dismissal acknowledgment from the agent.</param>
+        /// <returns>Null terminating message.</returns>
+        public override Message Dismissal(Message m)
+        {
+            return new Message(null, CommType.TERM);
+        }
+        /// <summary>
         /// Communication between an agent and Port is unnecessary so a null initializer is sent.
         /// </summary>
         /// <returns>Null initializing message.</returns>
         public override Message InitComm()
+        {
+            return new Message(null, CommType.INIT);
+        }
+        /// <summary>
+        /// Dismissal of agents is unnecessary so a null initializer is sent.
+        /// </summary>
+        /// <returns>Null initializing message.</returns>
+        public override Message InitDism()
         {
             return new Message(null, CommType.INIT);
         }

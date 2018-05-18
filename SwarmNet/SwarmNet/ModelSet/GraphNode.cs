@@ -19,11 +19,7 @@ namespace SwarmNet
         #endregion
 
         #region Properties
-
-        /// <summary>
-        /// The neighbor that leaving agents will go to.
-        /// </summary>
-        public abstract GraphNode Exit { get; }
+        
         /// <summary>
         /// The in flow into this node.
         /// </summary>
@@ -55,7 +51,7 @@ namespace SwarmNet
         /// The set piece on this node.
         /// </summary>
         [DataMember]
-        public SetPiece Piece { get; set; }
+        public Station Station { get; set; }
         /// <summary>
         /// The set of coordinates used to place this node in any layout scheme.
         /// </summary>
@@ -210,6 +206,12 @@ namespace SwarmNet
             }
             Out.Sort();
         }
+        /// <summary>
+        /// Get the node that the agent will travel to next.
+        /// </summary>
+        /// <param name="a">The agent that will be traveling.</param>
+        /// <returns>The next node.</returns>
+        public abstract GraphNode GetExit(Agent a);
 
         #endregion
 

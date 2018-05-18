@@ -45,7 +45,7 @@
     <Compile Include="Message.cs" />
     <Compile Include="ModelSet\Junction.cs" />
     <Compile Include="ModelSet\ModelGraph.cs" />
-    <Compile Include="ModelSet\SetPiece.cs" />
+    <Compile Include="ModelSet\Station.cs" />
     <Compile Include="ModelSet\BranchNode.cs" />
     <Compile Include="ModelSet\RootNode.cs" />
     <Compile Include="ModelSet\LeafNode.cs" />

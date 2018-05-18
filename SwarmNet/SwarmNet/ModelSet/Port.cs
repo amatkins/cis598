@@ -3,9 +3,25 @@
 namespace SwarmNet
 {
     [DataContract(Name = "Port", Namespace = "SwarmNet")]
-    public abstract class Port : SetPiece
+    public abstract class Port : Station
     {
-        #region Methods
+        #region Methods - Communication
+
+        /// <summary>
+        /// Dismiss an agent.
+        /// </summary>
+        /// <param name="m">The message from the agent.</param>
+        /// <returns>The response from the port.</returns>
+        public abstract Message Dismissal(Message m);
+        /// <summary>
+        /// Initiate dismissal of an agent.
+        /// </summary>
+        /// <returns>The first message.</returns>
+        public abstract Message InitDism();
+
+        #endregion
+
+        #region Methods - Agent Handling
 
         /// <summary>
         /// Spawns a new agent on the node.
